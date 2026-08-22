@@ -231,8 +231,16 @@ function toolIcon(tool) {
   return icons.hub;
 }
 
+function guidesForTool(tool) {
+  if (tool.id === "partner_portal") return [
+    { format: "PDF", label: "Complete instructions", url: "/guides/WATA_Partner_Portal_Guide.pdf" },
+    { format: "PNG", label: "Quick-start one-pager", url: "/guides/WATA_Partner_Portal_Guide_Page_2.png" }
+  ];
+  return tool.guides || [];
+}
+
 function guideMenu(tool) {
-  const guides = tool.guides || [];
+  const guides = guidesForTool(tool);
   return `<details class="guide-menu"><summary>Instructions <span aria-hidden="true">⌄</span></summary><div class="guide-links">${guides.length
     ? guides.map(guide => `<a href="${escapeHtml(guide.url)}" target="_blank" rel="noopener noreferrer"><b>${escapeHtml(guide.format)}</b><span>${escapeHtml(guide.label)}</span></a>`).join("")
     : `<span class="guide-pending">PDF + PNG guide coming soon</span>`}</div></details>`;
@@ -271,7 +279,7 @@ function syncHubNavigation() {
   }).join("");
   const guideList = document.querySelector("#menuGuideList");
   if (guideList) guideList.innerHTML = state.tools.map(tool => {
-    const guides = tool.guides || [];
+    const guides = guidesForTool(tool);
     return `<div class="menu-guide-row"><strong>${escapeHtml(tool.name)}</strong><span>${guides.length ? guides.map(guide => `<a href="${escapeHtml(guide.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(guide.format)}</a>`).join("") : "Guide coming soon"}</span></div>`;
   }).join("");
 }
