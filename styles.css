@@ -358,22 +358,18 @@ html[data-product="hub"][data-theme="light"] {
   min-height: 292px;
   padding: clamp(30px,5vw,62px);
   background:
-    linear-gradient(125deg, rgba(11,37,70,.96), rgba(8,25,49,.76)),
-    url("assets/topography.svg") center / 860px auto;
+    linear-gradient(125deg, rgba(11,37,70,.88), rgba(8,25,49,.68)),
+    url("assets/topography.svg") center / 720px auto;
   border: 1px solid rgba(108,209,237,.18);
   border-radius: 38px 12px 38px 12px;
   box-shadow: var(--shadow);
 }
 [data-product="hub"][data-theme="light"] .hub-launcher-intro {
   background:
-    linear-gradient(125deg, rgba(255,255,255,.97), rgba(237,247,251,.90)),
-    url("assets/topography.svg") center / 860px auto;
+    linear-gradient(125deg, rgba(255,255,255,.88), rgba(237,247,251,.74)),
+    url("assets/topography.svg") center / 720px auto;
   border-color: #cfe3eb;
 }
-.hub-launcher-intro::before,
-.hub-launcher-intro::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; }
-.hub-launcher-intro::before { width: 330px; height: 330px; right: -90px; top: -150px; border: 1px solid rgba(99,219,242,.28); box-shadow: 0 0 0 38px rgba(70,145,255,.045), 0 0 0 94px rgba(70,145,255,.035); }
-.hub-launcher-intro::after { width: 8px; height: 8px; right: 22%; bottom: 20%; background: var(--water); box-shadow: -135px -78px 0 #55a0ff, 91px -116px 0 #6be0ac, -72px 64px 0 #f4a340, 0 0 22px 5px rgba(37,212,242,.45); }
 .hub-launcher-copy { max-width: 790px; }
 .hub-launcher-copy .eyebrow { color: #7ee6f4; }
 .hub-launcher-copy h1 { font-size: clamp(40px,5.4vw,72px); line-height: .94; letter-spacing: -.055em; }
@@ -499,7 +495,7 @@ html[data-product="hub"][data-theme="light"] {
   [data-product="hub"] .hub-app-head { margin-bottom: 17px; }
   [data-product="hub"] .hub-app-head h1, [data-product="hub"] .hub-app-head h2 { font-size: 25px; }
   [data-product="hub"] .hub-app-head > span { display: none; }
-  [data-product="hub"] .hub-launcher-intro { grid-template-columns: 1fr; gap: 14px; min-height: 160px; padding: 22px 19px; border-radius: 26px 9px 26px 9px; }
+  [data-product="hub"] .hub-launcher-intro { grid-template-columns: 1fr; gap: 14px; min-height: 160px; padding: 22px 19px; background-size: auto, 520px auto; border-radius: 26px 9px 26px 9px; }
   [data-product="hub"] .hub-launcher-copy h1 { font-size: 31px; line-height: .97; }
   [data-product="hub"] .hub-launcher-copy > p:last-child { display: none; }
   [data-product="hub"] .hub-launcher-copy .eyebrow { margin-bottom: 7px; font-size: 9px; }

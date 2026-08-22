@@ -500,6 +500,9 @@ async function loadPortal({ background = false } = {}) {
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw Object.assign(new Error(body.error || "Portal unavailable"), { status: response.status });
+    if (!isPortalHost && (!Array.isArray(body.tools) || body.tools.length === 0)) {
+      throw Object.assign(new Error("The app directory returned no tools"), { status: 503 });
+    }
     applyBootstrap(body);
     writeHubSnapshot(body);
     state.error = null;
