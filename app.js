@@ -153,7 +153,7 @@ function applyTheme(theme, persist = true) {
   themeToggle.querySelector(".theme-label").textContent = dark ? "Light" : "Dark";
   document.querySelector('meta[name="theme-color"]').content = isPortalHost
     ? (dark ? "#061226" : "#3052a4")
-    : (dark ? "#030d1d" : "#07172d");
+    : (dark ? "#030d1d" : "#f4f8fb");
 }
 
 function setScopeOptions() {
@@ -255,10 +255,10 @@ function toolCard(tool) {
 function homeView() {
   const readyCount = state.tools.filter(tool => tool.status === "ready").length;
   return `<section class="hub-launcher-intro" id="apps">
-    <div class="hub-launcher-copy"><p class="eyebrow">W.A.T.A. technology constellation</p><h1>Everything you use.<br><span>One clean launchpad.</span></h1><p>Open the tools connected to your role, then grab the latest instructions whenever somebody needs them.</p></div>
-    <div class="hub-launcher-count" aria-label="${readyCount} apps ready"><strong>${readyCount}</strong><span>apps ready</span><i aria-hidden="true"></i></div>
+    <div class="hub-launcher-copy"><p class="eyebrow">W.A.T.A. Tech Hub</p><h1>Apps &amp;<br><span>instructions</span></h1><p>Links and guides available to your account.</p></div>
+    <div class="hub-launcher-count" aria-label="${readyCount} apps available"><strong>${readyCount}</strong><span>available</span><i aria-hidden="true"></i></div>
   </section>
-  <div class="hub-app-head"><div><p class="eyebrow">Your access</p><h2>Launch an app</h2></div><span>Synced from Airtable</span></div>
+  <div class="hub-app-head"><div><h2>Apps</h2></div><span>Airtable synced</span></div>
   <div class="tool-grid hub-tool-grid">${state.tools.map(toolCard).join("")}</div>`;
 }
 
@@ -395,7 +395,7 @@ function settingsView() {
 }
 
 function loadingView() {
-  if (!isPortalHost) return `<section class="hub-loading-state"><div class="hub-loader-mark"><span></span><span></span><span></span></div><p class="eyebrow">Secure W.A.T.A. launchpad</p><h1>Connecting your apps.</h1><p>Loading your Airtable access and the tools available to you.</p></section>`;
+  if (!isPortalHost) return `<section class="hub-loading-state"><div class="hub-loader-mark"><span></span><span></span><span></span></div><p class="eyebrow">W.A.T.A. Tech Hub</p><h1>Loading apps.</h1><p>Checking your Airtable access.</p></section>`;
   return `<div class="hero"><div><p class="eyebrow">Secure W.A.T.A. app</p><h1>Building your workspace.</h1><p class="hero-copy">Checking your Airtable role and preparing the apps and instructions available to you.</p></div></div>`;
 }
 
@@ -404,7 +404,7 @@ function errorView() {
   const accessHelp = isPortalHost
     ? "Confirm that your Airtable Surveyors record has a unique email, Active status, an approved role and team, and Portal Access checked."
     : "Confirm that your Airtable App Access record has a unique email, Active status, Tech Hub checked, and at least one app enabled.";
-  if (!isPortalHost) return `<section class="hub-loading-state hub-error-state"><div class="hub-loader-mark"><span></span><span></span><span></span></div><p class="eyebrow">${forbidden ? "Access needed" : "Connection paused"}</p><h1>${forbidden ? "This launchpad is not enabled yet." : "Your apps are temporarily out of reach."}</h1><p>${forbidden ? accessHelp : "No settings changed. Try again after the connection is restored."}</p><button class="retry-button" id="retryButton">Try again</button></section>`;
+  if (!isPortalHost) return `<section class="hub-loading-state hub-error-state"><div class="hub-loader-mark"><span></span><span></span><span></span></div><p class="eyebrow">${forbidden ? "Access needed" : "Connection paused"}</p><h1>${forbidden ? "Tech Hub access is not enabled yet." : "Your apps are temporarily unavailable."}</h1><p>${forbidden ? accessHelp : "No settings changed. Try again after the connection is restored."}</p><button class="retry-button" id="retryButton">Try again</button></section>`;
   return `<div class="hero"><div><p class="eyebrow">${forbidden ? "App access" : "Connection"}</p><h1>${forbidden ? "Your W.A.T.A. access is not enabled yet." : "The W.A.T.A. app is temporarily unavailable."}</h1><p class="hero-copy">${forbidden ? accessHelp : "No records were changed. Try again after the connection is restored."}</p><button class="retry-button" id="retryButton">Try again</button></div></div>`;
 }
 
