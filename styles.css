@@ -70,7 +70,7 @@ main { min-width: 0; }
 [data-product="hub"] .content { max-width: 1280px; }
 .hub-rail { background-image: linear-gradient(180deg, rgba(13,32,64,.94), rgba(5,16,34,.99)), url("assets/topography.svg"); }
 .hub-brand { padding-bottom: 34px; letter-spacing: 0; }
-.hub-brand img { width: 46px; height: 46px; border-radius: 14px; }
+.hub-brand img { width: 46px; height: 46px; object-fit: contain; }
 .hub-brand > span { display: grid; gap: 2px; }
 .hub-brand strong { font-size: 17px; letter-spacing: .13em; }
 .hub-brand small { color: #8edfff; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; }
@@ -84,7 +84,7 @@ main { min-width: 0; }
 .mini-tool-icon svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
 .hub-topbar { min-height: 68px; padding: 9px clamp(18px,4vw,52px); background: color-mix(in srgb,var(--surface) 91%,transparent); }
 .hub-heading { display: flex; align-items: center; gap: 11px; }
-.hub-heading img { display: none; border-radius: 11px; }
+.hub-heading img { display: none; object-fit: contain; }
 .hub-heading > span { display: grid; gap: 1px; }
 .hub-heading strong { font-size: 14px; letter-spacing: -.01em; }
 .hub-heading small { color: var(--muted); font-size: 11px; }
