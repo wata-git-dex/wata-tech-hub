@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title id="title">W.A.T.A. Impact Map</title>
-  <defs><linearGradient id="bg" x1="60" y1="42" x2="460" y2="470" gradientUnits="userSpaceOnUse"><stop stop-color="#31d8fb"/><stop offset="1" stop-color="#2455a7"/></linearGradient></defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <path d="m74 143 109-48 146 43 109-43v274l-109 48-146-43-109 43V143Z" fill="#fff" opacity=".16" stroke="#e8fdff" stroke-width="13" stroke-linejoin="round"/>
-  <path d="M183 95v279M329 138v279" fill="none" stroke="#e8fdff" stroke-width="11" opacity=".7"/>
-  <path d="M133 197c-29 0-52 23-52 52 0 39 52 94 52 94s52-55 52-94c0-29-23-52-52-52Zm0 72a20 20 0 1 1 0-40 20 20 0 0 1 0 40ZM365 166c-26 0-47 21-47 47 0 35 47 84 47 84s47-49 47-84c0-26-21-47-47-47Zm0 65a18 18 0 1 1 0-36 18 18 0 0 1 0 36ZM266 274c-23 0-42 19-42 42 0 31 42 75 42 75s42-44 42-75c0-23-19-42-42-42Zm0 58a16 16 0 1 1 0-32 16 16 0 0 1 0 32Z" fill="#fff"/>
-</svg>
