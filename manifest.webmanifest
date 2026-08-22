@@ -6,8 +6,8 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#edf5f5",
-  "theme_color": "#3052a4",
+  "background_color": "#07172d",
+  "theme_color": "#07172d",
   "icons": [
     {
       "src": "/assets/tech-hub/icon-192.png",

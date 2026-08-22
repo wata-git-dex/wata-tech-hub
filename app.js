@@ -151,7 +151,9 @@ function applyTheme(theme, persist = true) {
   themeToggle.setAttribute("aria-pressed", String(dark));
   themeToggle.querySelector(".theme-icon").textContent = dark ? "☀" : "☾";
   themeToggle.querySelector(".theme-label").textContent = dark ? "Light" : "Dark";
-  document.querySelector('meta[name="theme-color"]').content = dark ? "#061226" : "#3052a4";
+  document.querySelector('meta[name="theme-color"]').content = isPortalHost
+    ? (dark ? "#061226" : "#3052a4")
+    : (dark ? "#030d1d" : "#07172d");
 }
 
 function setScopeOptions() {
@@ -371,7 +373,7 @@ function settingsView() {
       <article class="help-card"><span>01</span><h3>Your access</h3><p>Your active Airtable App Access record and its checkboxes control exactly which apps appear. Surveyors remains separate for Filter Registry scope.</p></article>
       <article class="help-card"><span>02</span><h3>Instructions</h3><p>Open the hamburger menu and choose Instructions for each app's latest PDF and share-ready PNG files.</p></article>
       <article class="help-card"><span>03</span><h3>App updates</h3><p>When an app guide is replaced in the W.A.T.A. source catalog, the next Hub release publishes the matching PDF and PNG automatically.</p></article>
-      <article class="help-card"><span>04</span><h3>Coming soon</h3><p>Community App and Field Kit stay visible as roadmap items but will not send you to a guessed or unfinished destination.</p></article>
+      <article class="help-card"><span>04</span><h3>Coming soon</h3><p>Community App and Field App stay visible as roadmap items but will not send you to a guessed or unfinished destination.</p></article>
     </div>
     <button class="retry-button" data-view="home">Back to your apps</button>`;
   return `<div class="partner-summary">${partnerMark()}<div><h2>Settings & help</h2><p>${escapeHtml(partner().name)} · Portal guide</p></div></div>
