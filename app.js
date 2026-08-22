@@ -23,9 +23,10 @@ const isPortalHost = document.documentElement.dataset.product === "portal";
 const HUB_SNAPSHOT_KEY = "wata-tech-hub-snapshot-v1";
 const HUB_SNAPSHOT_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 const WATA_REFERENCE_COPY = Object.freeze({
-  mission: "Our mission is to provide communities around the world with access to clean, safe drinking water through sustainable filtration systems.",
-  vision: "A world where every community has lasting access to clean water and the local capacity to sustain it.",
-  boilerplate: "Water Access To All (W.A.T.A.) is a registered 501(c)(3) nonprofit organization expanding access to clean, safe drinking water through sustainable filtration systems and collaboration with local leaders and partners."
+  mission: "Water Access To All brings clean, safe drinking water to communities without reliable access—installing filtration systems while developing the local capacity and leadership to carry the work forward.",
+  vision: "A world where every community has lasting access to clean water—and where local youth lead that change, supported by outside partners but never dependent on them.",
+  taxId: "99-2348652",
+  boilerplate: "Water Access To All (W.A.T.A.) is a registered 501(c)(3) nonprofit bringing clean, safe drinking water to communities without reliable access through filtration, training, and locally led implementation. W.A.T.A. works alongside local leaders and partners to build lasting capacity so communities can carry the work forward."
 });
 document.title = isPortalHost ? "W.A.T.A. Partner Portal" : "W.A.T.A. Tech Hub";
 const initialRoute = isPortalHost ? location.hash.slice(1) : "";
@@ -410,10 +411,11 @@ function settingsView() {
 
 function aboutView() {
   return `<div class="hub-app-head about-title"><div><p class="eyebrow">Reference</p><h1>About W.A.T.A.</h1><p>Copy-ready language for applications, grants, and partner materials.</p></div></div>
-    <div class="about-note"><strong>Language status</strong><span>The mission is current public wording. The vision is working language until W.A.T.A. formally publishes one.</span></div>
+    <div class="about-note"><strong>Ready to use</strong><span>Approved mission, vision, nonprofit information, and organization boilerplate.</span></div>
     <div class="about-copy-grid">
-      <article class="copy-card"><span>Official mission</span><p>${escapeHtml(WATA_REFERENCE_COPY.mission)}</p><button type="button" data-copy-key="mission">Copy mission</button></article>
-      <article class="copy-card"><span>Working vision</span><p>${escapeHtml(WATA_REFERENCE_COPY.vision)}</p><button type="button" data-copy-key="vision">Copy vision</button></article>
+      <article class="copy-card"><span>Mission</span><p>${escapeHtml(WATA_REFERENCE_COPY.mission)}</p><button type="button" data-copy-key="mission">Copy mission</button></article>
+      <article class="copy-card"><span>Vision</span><p>${escapeHtml(WATA_REFERENCE_COPY.vision)}</p><button type="button" data-copy-key="vision">Copy vision</button></article>
+      <article class="copy-card tax-id-card"><span>501(c)(3) Federal Tax ID (EIN)</span><p>${escapeHtml(WATA_REFERENCE_COPY.taxId)}</p><button type="button" data-copy-key="taxId">Copy tax ID</button></article>
       <article class="copy-card wide-copy-card"><span>Organization boilerplate</span><p>${escapeHtml(WATA_REFERENCE_COPY.boilerplate)}</p><button type="button" data-copy-key="boilerplate">Copy boilerplate</button></article>
     </div>
     <div class="about-actions"><a href="https://www.cleanwata.org/ourstory" target="_blank" rel="noopener noreferrer">Open W.A.T.A. story ↗</a><button class="retry-button" data-view="home">Back to apps</button></div>`;

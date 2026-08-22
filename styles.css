@@ -433,6 +433,8 @@ html[data-product="hub"][data-theme="light"] {
 .copy-card > span { color: var(--ocean); font-size: 10px; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
 .copy-card p { margin: 23px 0; font-size: 17px; line-height: 1.6; }
 .copy-card button { align-self: end; justify-self: start; margin-top: auto; padding: 9px 12px; color: white; background: var(--ocean); border: 0; border-radius: 10px; font-size: 12px; font-weight: 850; }
+.tax-id-card { grid-column: 1 / -1; min-height: 180px; }
+.tax-id-card p { font-size: clamp(27px,4vw,38px); font-weight: 850; letter-spacing: .04em; line-height: 1.2; }
 .wide-copy-card { grid-column: 1 / -1; min-height: 210px; }
 .about-actions { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
 .about-actions a { color: var(--ocean); font-size: 13px; font-weight: 800; text-decoration: none; }
@@ -537,6 +539,7 @@ html[data-product="hub"][data-theme="light"] {
   .about-note { display: grid; }
   .about-copy-grid { grid-template-columns: 1fr; }
   .wide-copy-card { grid-column: auto; }
+  .tax-id-card { grid-column: auto; }
   .copy-card { min-height: 0; }
   .about-actions { align-items: flex-start; flex-direction: column; }
 }
