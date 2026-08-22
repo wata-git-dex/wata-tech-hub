@@ -1,6 +1,6 @@
-const VERSION = "wata-tech-hub-v4";
+const VERSION = "wata-tech-hub-v5";
 const APP_SHELL = [
-  "/", "/index.html", "/styles.css?v=20", "/app.js?v=24", "/partner-branding.js", "/theme-init.js",
+  "/", "/index.html", "/styles.css?v=21", "/app.js?v=25", "/partner-branding.js", "/theme-init.js",
   "/manifest.webmanifest", "/assets/tech-hub/icon-32.png",
   "/assets/tech-hub/apple-touch-icon.png", "/assets/tech-hub/icon-192.png",
   "/assets/tech-hub/icon-512.png", "/assets/tech-hub/icon-512-maskable.png",

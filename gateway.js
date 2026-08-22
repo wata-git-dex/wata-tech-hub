@@ -10,7 +10,19 @@ const CARD_CATALOG = {
     name: "Partner Portal",
     description: "Filter reporting, follow-ups, impact, and issues for approved partners.",
     url: "https://registry.cleanwata.org/",
-    audience: "Approved portal users"
+    audience: "Approved portal users",
+    guides: [
+      {
+        format: "PDF",
+        label: "Complete instructions",
+        url: "/guides/WATA_Partner_Portal_Guide.pdf"
+      },
+      {
+        format: "PNG",
+        label: "Quick-start one-pager",
+        url: "/guides/WATA_Partner_Portal_Guide_Page_2.png"
+      }
+    ]
   },
   community: {
     name: "Community App",

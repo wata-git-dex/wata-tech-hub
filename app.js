@@ -253,10 +253,8 @@ function toolCard(tool) {
 }
 
 function homeView() {
-  const readyCount = state.tools.filter(tool => tool.status === "ready").length;
   return `<section class="hub-launcher-intro" id="apps">
     <div class="hub-launcher-copy"><p class="eyebrow">W.A.T.A. Tech Hub</p><h1>Apps &amp;<br><span>instructions</span></h1><p>Links and guides available to your account.</p></div>
-    <div class="hub-launcher-count" aria-label="${readyCount} apps available"><strong>${readyCount}</strong><span>available</span><i aria-hidden="true"></i></div>
   </section>
   <div class="hub-app-head"><div><h2>Apps</h2></div><span>Airtable synced</span></div>
   <div class="tool-grid hub-tool-grid">${state.tools.map(toolCard).join("")}</div>`;
