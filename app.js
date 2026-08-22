@@ -22,6 +22,11 @@ const menuPanel = document.querySelector("#menuPanel");
 const isPortalHost = document.documentElement.dataset.product === "portal";
 const HUB_SNAPSHOT_KEY = "wata-tech-hub-snapshot-v1";
 const HUB_SNAPSHOT_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+const WATA_REFERENCE_COPY = Object.freeze({
+  mission: "Our mission is to provide communities around the world with access to clean, safe drinking water through sustainable filtration systems.",
+  vision: "A world where every community has lasting access to clean water and the local capacity to sustain it.",
+  boilerplate: "Water Access To All (W.A.T.A.) is a registered 501(c)(3) nonprofit organization expanding access to clean, safe drinking water through sustainable filtration systems and collaboration with local leaders and partners."
+});
 document.title = isPortalHost ? "W.A.T.A. Partner Portal" : "W.A.T.A. Tech Hub";
 const initialRoute = isPortalHost ? location.hash.slice(1) : "";
 let selectedFilterId = initialRoute.startsWith("filter/") ? decodeURIComponent(initialRoute.slice(7)) : null;
@@ -261,11 +266,14 @@ function toolCard(tool) {
 }
 
 function homeView() {
+  const available = state.tools.filter(tool => tool.status === "ready");
+  const development = state.tools.filter(tool => tool.status !== "ready");
   return `<section class="hub-launcher-intro" id="apps">
-    <div class="hub-launcher-copy"><p class="eyebrow">W.A.T.A. Tech Hub</p><h1>Apps &amp;<br><span>instructions</span></h1><p>Links and guides available to your account.</p></div>
+    <div class="hub-launcher-copy"><p class="eyebrow">W.A.T.A. Tech Hub</p><h1>Apps &amp; instructions</h1><p>Links and guides available to your account.</p></div>
   </section>
   <div class="hub-app-head"><div><h2>Apps</h2></div><span>Airtable synced</span></div>
-  <div class="tool-grid hub-tool-grid">${state.tools.map(toolCard).join("")}</div>`;
+  <div class="tool-grid hub-tool-grid">${available.map(toolCard).join("")}</div>
+  ${development.length ? `<div class="hub-app-head hub-development-head"><div><h2>In development</h2><p>Tools currently being built or prepared.</p></div></div><div class="tool-grid hub-tool-grid hub-development-grid">${development.map(toolCard).join("")}</div>` : ""}`;
 }
 
 function syncHubNavigation() {
@@ -400,6 +408,17 @@ function settingsView() {
     </div>`;
 }
 
+function aboutView() {
+  return `<div class="hub-app-head about-title"><div><p class="eyebrow">Reference</p><h1>About W.A.T.A.</h1><p>Copy-ready language for applications, grants, and partner materials.</p></div></div>
+    <div class="about-note"><strong>Language status</strong><span>The mission is current public wording. The vision is working language until W.A.T.A. formally publishes one.</span></div>
+    <div class="about-copy-grid">
+      <article class="copy-card"><span>Official mission</span><p>${escapeHtml(WATA_REFERENCE_COPY.mission)}</p><button type="button" data-copy-key="mission">Copy mission</button></article>
+      <article class="copy-card"><span>Working vision</span><p>${escapeHtml(WATA_REFERENCE_COPY.vision)}</p><button type="button" data-copy-key="vision">Copy vision</button></article>
+      <article class="copy-card wide-copy-card"><span>Organization boilerplate</span><p>${escapeHtml(WATA_REFERENCE_COPY.boilerplate)}</p><button type="button" data-copy-key="boilerplate">Copy boilerplate</button></article>
+    </div>
+    <div class="about-actions"><a href="https://www.cleanwata.org/ourstory" target="_blank" rel="noopener noreferrer">Open W.A.T.A. story ↗</a><button class="retry-button" data-view="home">Back to apps</button></div>`;
+}
+
 function loadingView() {
   if (!isPortalHost) return `<section class="hub-loading-state"><div class="hub-loader-mark"><span></span><span></span><span></span></div><p class="eyebrow">W.A.T.A. Tech Hub</p><h1>Loading apps.</h1><p>Checking your Airtable access.</p></section>`;
   return `<div class="hero"><div><p class="eyebrow">Secure W.A.T.A. app</p><h1>Building your workspace.</h1><p class="hero-copy">Checking your Airtable role and preparing the apps and instructions available to you.</p></div></div>`;
@@ -426,8 +445,8 @@ function syncChrome() {
 function render() {
   if (state.loading) { app.innerHTML = loadingView(); return; }
   if (state.error) { app.innerHTML = errorView(); document.querySelector("#retryButton")?.addEventListener("click", loadPortal); return; }
-  const views = { home: homeView, portal: portalView, impact: impactView, filters: filtersView, "filter-detail": filterDetailView, followups: followupsView, issues: issuesView, settings: settingsView };
-  if (!isPortalHost && currentView !== "settings") currentView = "home";
+  const views = { home: homeView, portal: portalView, impact: impactView, filters: filtersView, "filter-detail": filterDetailView, followups: followupsView, issues: issuesView, settings: settingsView, about: aboutView };
+  if (!isPortalHost && !["settings", "about"].includes(currentView)) currentView = "home";
   if (isPortalHost && currentView === "home") currentView = "portal";
   if (!state.session?.portalEnabled && portalViews.has(currentView)) currentView = "home";
   if (!views[currentView]) currentView = "home";
@@ -527,7 +546,7 @@ async function loadPortal({ background = false } = {}) {
   }
 }
 
-document.addEventListener("click", event => {
+document.addEventListener("click", async event => {
   if (event.target.closest("#menuButton")) {
     const open = menuPanel.hidden;
     menuPanel.hidden = !open;
@@ -546,6 +565,20 @@ const hubScroll = event.target.closest("[data-hub-scroll]");
     menuPanel.hidden = true;
     menuButton.setAttribute("aria-expanded", "false");
     requestAnimationFrame(() => document.querySelector(`#${hubScroll.dataset.hubScroll}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    return;
+  }
+  const copyTarget = event.target.closest("[data-copy-key]");
+  if (copyTarget) {
+    const value = WATA_REFERENCE_COPY[copyTarget.dataset.copyKey];
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      const prior = copyTarget.textContent;
+      copyTarget.textContent = "Copied";
+      setTimeout(() => { copyTarget.textContent = prior; }, 1400);
+    } catch {
+      copyTarget.textContent = "Copy unavailable";
+    }
     return;
   }
   const countryTarget = event.target.closest("[data-country]");
