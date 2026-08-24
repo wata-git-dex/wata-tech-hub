@@ -14,7 +14,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/assets/tech-hub/icon-32-v5.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/assets/tech-hub/apple-touch-icon-v5.png" sizes="180x180">
-  <link rel="stylesheet" href="styles.css?v=37">
+  <link rel="stylesheet" href="styles.css?v=40">
   <title>W.A.T.A. Toolkit</title>
 </head>
 <body>
@@ -31,11 +31,20 @@
     <main>
       <header class="topbar">
         <button class="home-mark" type="button" data-view="home" aria-label="Return to apps"><img src="/assets/tech-hub/brand-logo-v3.png" alt="" width="42" height="42"></button>
-        <div class="topbar-title" aria-label="Water Access to All"><strong>Water Access to All</strong><small>W.A.T.A. Toolkit</small></div>
-        <button class="menu-button" id="menuButton" type="button" aria-label="Open W.A.T.A. menu" aria-expanded="false" aria-controls="menuDrawer"><span></span><span></span><span></span></button>
+        <div class="topbar-title" id="topbarTitle" data-no-translate aria-label="Water Access to All"><strong id="topbarBrand">Water Access to All</strong><small id="topbarProduct">W.A.T.A. Toolkit</small></div>
+        <div class="topbar-actions">
+          <div class="language-picker" data-no-translate>
+            <button class="language-button" id="languageMenuButton" type="button" aria-label="Choose language" title="Choose language" aria-expanded="false" aria-controls="languageMenu"><span class="language-globe" aria-hidden="true">🌐</span></button>
+            <div class="language-menu" id="languageMenu" hidden>
+              <button type="button" data-language="en"><span aria-hidden="true">🇺🇸</span><strong>English</strong><span class="language-check" aria-hidden="true">✓</span></button>
+              <button type="button" data-language="es"><span aria-hidden="true">🇪🇸</span><strong>Español</strong><span class="language-check" aria-hidden="true">✓</span></button>
+            </div>
+          </div>
+          <button class="menu-button" id="menuButton" type="button" aria-label="Open W.A.T.A. menu" aria-expanded="false" aria-controls="menuDrawer"><span></span><span></span><span></span></button>
+        </div>
       </header>
       <section id="app" class="content" aria-live="polite"></section>
-      <footer class="site-footer"><img src="/assets/wata-logo.png" alt="" width="26" height="26"><span>Water Access to All</span><small>Toolkit v1.1.8</small></footer>
+      <footer class="site-footer"><img src="/assets/wata-logo.png" alt="" width="26" height="26"><span>Water Access to All</span><small>Toolkit v1.1.9</small></footer>
     </main>
   </div>
   <div class="drawer-scrim" id="drawerScrim" hidden></div>
@@ -56,6 +65,6 @@
       <div class="accent-choice" role="group" aria-label="Accent color"><button type="button" data-accent-choice="cyan" aria-label="Cyan accent"></button><button type="button" data-accent-choice="pink" aria-label="Pink accent"></button><button type="button" data-accent-choice="blue" aria-label="Blue accent"></button><button type="button" data-accent-choice="neutral" aria-label="Neutral accent"></button></div>
     </div>
   </aside>
-  <script type="module" src="app.js?v=35"></script>
+  <script type="module" src="app.js?v=36"></script>
 </body>
 </html>

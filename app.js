@@ -1,4 +1,5 @@
 import { dataAdapter } from "./data-adapter.js";
+import { languageLocale, normalizeLanguage, translateText } from "./i18n.js";
 
 const SNAPSHOT_KEY = "wata-tech-hub-bootstrap-v2";
 const SNAPSHOT_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
@@ -26,13 +27,76 @@ const COUNTRY_CODES = "AF AL DZ AD AO AG AR AM AU AT AZ BS BH BD BB BY BE BZ BJ 
 
 const state = { loading: true, error: null, bootstrap: null, offlineSnapshot: false, saving: false };
 let currentView = location.hash.slice(1) || "home";
+let currentLanguage = normalizeLanguage(localStorage.getItem("wata-language") || navigator.language);
 const app = document.querySelector("#app");
 const drawer = document.querySelector("#menuDrawer");
 const scrim = document.querySelector("#drawerScrim");
 const menuButton = document.querySelector("#menuButton");
+const languageMenuButton = document.querySelector("#languageMenuButton");
+const languageMenu = document.querySelector("#languageMenu");
+document.documentElement.lang = currentLanguage;
+document.title = currentLanguage === "es" ? "Kit de Herramientas W.A.T.A." : "W.A.T.A. Toolkit";
 
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 const display = (value, fallback = "Not provided") => value == null || value === "" || (Array.isArray(value) && !value.length) ? fallback : Array.isArray(value) ? value.join(", ") : String(value);
+const textSources = new WeakMap();
+const attributeSources = new WeakMap();
+const translatableAttributes = ["aria-label", "title", "placeholder"];
+
+function translateDom(root = document) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (node.parentElement?.closest("script, style, [data-no-translate]")) continue;
+    const source = textSources.get(node) ?? node.nodeValue;
+    textSources.set(node, source);
+    const match = source.match(/^(\s*)(.*?)(\s*)$/su);
+    node.nodeValue = `${match[1]}${translateText(match[2], currentLanguage)}${match[3]}`;
+  }
+  const elements = root.querySelectorAll ? root.querySelectorAll("*") : [];
+  for (const element of elements) {
+    if (element.closest("[data-no-translate]")) continue;
+    let sources = attributeSources.get(element);
+    if (!sources) { sources = new Map(); attributeSources.set(element, sources); }
+    for (const attribute of translatableAttributes) {
+      if (!element.hasAttribute(attribute)) continue;
+      if (!sources.has(attribute)) sources.set(attribute, element.getAttribute(attribute));
+      element.setAttribute(attribute, translateText(sources.get(attribute), currentLanguage));
+    }
+  }
+}
+
+function syncLanguageControl() {
+  const label = translateText("Choose language", currentLanguage);
+  languageMenuButton?.setAttribute("aria-label", label);
+  languageMenuButton?.setAttribute("title", label);
+  languageMenu?.querySelectorAll("[data-language]").forEach(option => {
+    const active = option.dataset.language === currentLanguage;
+    option.classList.toggle("active", active);
+    option.setAttribute("aria-pressed", String(active));
+  });
+  const spanish = currentLanguage === "es";
+  const topbarTitle = document.querySelector("#topbarTitle");
+  const topbarBrand = document.querySelector("#topbarBrand");
+  const topbarProduct = document.querySelector("#topbarProduct");
+  if (topbarTitle) topbarTitle.setAttribute("aria-label", spanish ? "Agua para Todas las Personas" : "Water Access to All");
+  if (topbarBrand) topbarBrand.textContent = spanish ? "Agua para todos" : "Water Access to All";
+  if (topbarProduct) topbarProduct.textContent = spanish ? "Kit W.A.T.A." : "W.A.T.A. Toolkit";
+}
+
+function closeLanguageMenu() {
+  if (!languageMenu || !languageMenuButton) return;
+  languageMenu.hidden = true;
+  languageMenuButton.setAttribute("aria-expanded", "false");
+}
+
+function applyLanguage(language, persist = true) {
+  currentLanguage = normalizeLanguage(language);
+  if (persist) localStorage.setItem("wata-language", currentLanguage);
+  document.documentElement.lang = currentLanguage;
+  document.title = currentLanguage === "es" ? "Kit de Herramientas W.A.T.A." : "W.A.T.A. Toolkit";
+  closeLanguageMenu();
+  render();
+}
 
 function guideList(appData) {
   if (appData.app_key === "filter_registry") return [
@@ -62,7 +126,7 @@ function appCard(appData) {
 function tripDate(value) {
   if (!value) return { day: "—", month: "TBD" };
   const date = new Date(String(value).length === 10 ? `${value}T12:00:00Z` : value);
-  return Number.isNaN(date.valueOf()) ? { day: "—", month: "TBD" } : { day: date.toLocaleDateString(undefined, { day: "2-digit", timeZone: "UTC" }), month: date.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" }) };
+  return Number.isNaN(date.valueOf()) ? { day: "—", month: "TBD" } : { day: date.toLocaleDateString(languageLocale(currentLanguage), { day: "2-digit", timeZone: "UTC" }), month: date.toLocaleDateString(languageLocale(currentLanguage), { month: "short", timeZone: "UTC" }) };
 }
 
 function tripRow(trip) {
@@ -97,18 +161,22 @@ function flagEmoji(code) {
 }
 
 function countryField(value) {
-  let names;
-  try { names = new Intl.DisplayNames([navigator.language || "en"], { type: "region" }); } catch { names = { of: code => code }; }
-  const countries = [...new Set(COUNTRY_CODES)].map(code => ({ code, name: names.of(code) || code })).sort((a, b) => a.name.localeCompare(b.name));
+  let canonicalNames;
+  let localizedNames;
+  try {
+    canonicalNames = new Intl.DisplayNames(["en-US"], { type: "region" });
+    localizedNames = new Intl.DisplayNames([languageLocale(currentLanguage)], { type: "region" });
+  } catch { canonicalNames = localizedNames = { of: code => code }; }
+  const countries = [...new Set(COUNTRY_CODES)].map(code => ({ code, name: canonicalNames.of(code) || code, label: localizedNames.of(code) || code })).sort((a, b) => a.label.localeCompare(b.label, languageLocale(currentLanguage)));
   const known = countries.some(country => country.name === value);
-  return `<label class="profile-field"><span>Country</span><select name="country"><option value="">Select a country</option>${value && !known ? `<option value="${escapeHtml(value)}" selected>${escapeHtml(value)}</option>` : ""}${countries.map(country => `<option value="${escapeHtml(country.name)}" ${country.name === value ? "selected" : ""}>${flagEmoji(country.code)} ${escapeHtml(country.name)}</option>`).join("")}</select></label>`;
+  return `<label class="profile-field"><span>Country</span><select name="country"><option value="">Select a country</option>${value && !known ? `<option value="${escapeHtml(value)}" selected>${escapeHtml(value)}</option>` : ""}${countries.map(country => `<option value="${escapeHtml(country.name)}" ${country.name === value ? "selected" : ""}>${flagEmoji(country.code)} ${escapeHtml(country.label)}</option>`).join("")}</select></label>`;
 }
 
 function tagPicker(name, label, values) {
   const selected = Array.isArray(values) ? values : [];
   const choices = [...new Set([...PROFILE_CHOICES[name], ...selected])];
   return `<div class="profile-field wide tag-field"><span>${label}</span><small class="field-help">${escapeHtml(PROFILE_HINTS[name])}</small><details class="tag-picker" data-tag-picker="${name}">
-    <summary><span><strong>${label}</strong><small data-tag-summary>${selected.length ? escapeHtml(selected.join(" · ")) : "Tap to choose"}</small></span><span class="picker-chevron" aria-hidden="true">⌄</span></summary>
+    <summary><span><strong>${label}</strong><small data-tag-summary>${selected.length ? escapeHtml(selected.map(value => translateText(value, currentLanguage)).join(" · ")) : "Tap to choose"}</small></span><span class="picker-chevron" aria-hidden="true">⌄</span></summary>
     <div class="tag-options">${choices.map(value => `<button type="button" role="checkbox" data-tag-value="${escapeHtml(value)}" aria-checked="${selected.includes(value)}" class="${selected.includes(value) ? "selected" : ""}">${escapeHtml(value)}</button>`).join("")}</div><div class="tag-adder"><input type="text" maxlength="48" data-tag-input="${name}" placeholder="Add another…" aria-label="Add another ${label.toLowerCase().replace(/s$/, "")}"><button type="button" data-add-tag="${name}">Add</button></div>
     <input type="hidden" name="${name}" value="${escapeHtml(selected.join(","))}">
   </details></div>`;
@@ -122,7 +190,7 @@ function avatarMarkup(profile, className, fallback) {
 
 function profileView() {
   const profile = state.bootstrap.profile;
-  const roles = state.bootstrap.roles.map(role => role.replaceAll("_", " ")).join(" · ") || "Member";
+  const roles = state.bootstrap.roles.map(role => translateText(role.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase()), currentLanguage)).join(" · ") || translateText("Member", currentLanguage);
   const initials = display(profile.display_name, profile.email).split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
   return `<header class="view-head"><p class="eyebrow">Shared profile</p><h1>Your W.A.T.A. profile</h1><p>Choose what fits and add what is missing. The Toolkit still saves a local draft until the shared W.A.T.A. account connection is switched on.</p></header>
     <form id="profileForm" class="profile-card"><div class="profile-summary"><label class="profile-photo">${avatarMarkup(profile, "profile-avatar", initials || "W")}<input id="avatarInput" type="file" accept="image/png,image/jpeg,image/webp" hidden><span>Change photo</span></label><div><strong>${escapeHtml(display(profile.display_name, "W.A.T.A. member"))}</strong><small>${escapeHtml(roles)}</small></div></div><input id="avatarUrl" type="hidden" name="avatar_url" value="${escapeHtml(profile.avatar_url)}">
@@ -173,6 +241,8 @@ function render() {
   else if (state.error && !state.bootstrap) app.innerHTML = errorView();
   else app.innerHTML = currentView === "profile" ? profileView() : currentView === "mission" ? missionView() : currentView === "about" ? aboutView() : currentView === "settings" ? settingsView() : homeView();
   syncNavigation();
+  translateDom(document);
+  syncLanguageControl();
 }
 
 function syncNavigation() {
@@ -180,13 +250,15 @@ function syncNavigation() {
   if (!bootstrap) return;
   const profile = bootstrap.profile;
   const initials = display(profile.display_name, profile.email).split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
-  document.querySelector("#menuProfile").innerHTML = `${avatarMarkup(profile, "avatar", initials || "W")}<span><strong>${escapeHtml(display(profile.display_name, "W.A.T.A. member"))}</strong><small>${escapeHtml(bootstrap.roles.join(" · ") || "Member")}</small></span>`;
+  const roles = bootstrap.roles.map(role => translateText(role.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase()), currentLanguage)).join(" · ") || translateText("Member", currentLanguage);
+  document.querySelector("#menuProfile").innerHTML = `${avatarMarkup(profile, "avatar", initials || "W")}<span><strong>${escapeHtml(display(profile.display_name, "W.A.T.A. member"))}</strong><small>${escapeHtml(roles)}</small></span>`;
   document.querySelector("#quickLinks").innerHTML = bootstrap.apps.map(item => item.status === "ready" && item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer"><span>${iconFor(item)}</span>${escapeHtml(item.name)}</a>` : `<span class="disabled"><span>${iconFor(item)}</span>${escapeHtml(item.name)}</span>`).join("");
   document.querySelector("#menuGuideList").innerHTML = bootstrap.apps.map(item => { const guides = guideList(item); return `<div><strong>${escapeHtml(item.name)}</strong><span>${guides.length ? guides.map(guide => `<a href="${escapeHtml(guide.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(guide.format)}</a>`).join("") : "Coming soon"}</span></div>`; }).join("");
   updateConnection();
 }
 
 function openMenu(open) {
+  if (open) closeLanguageMenu();
   drawer.classList.toggle("open", open);
   drawer.setAttribute("aria-hidden", String(!open));
   menuButton.setAttribute("aria-expanded", String(open));
@@ -204,7 +276,7 @@ function updateConnection() {
   const connected = navigator.onLine && !state.error;
   document.querySelector(".connection-dot")?.classList.toggle("connected", connected);
   const label = document.querySelector("#connectionLabel");
-  if (label) label.textContent = navigator.onLine ? (state.error ? "Connection needed" : "Access synced") : "Offline snapshot";
+  if (label) label.textContent = translateText(navigator.onLine ? (state.error ? "Connection needed" : "Access synced") : "Offline snapshot", currentLanguage);
 }
 
 function addCustomTag(input) {
@@ -263,6 +335,16 @@ async function loadBootstrap({ background = false } = {}) {
 }
 
 document.addEventListener("click", async event => {
+  if (event.target.closest("#languageMenuButton")) {
+    const open = languageMenu.hidden;
+    languageMenu.hidden = !open;
+    languageMenuButton.setAttribute("aria-expanded", String(open));
+    if (open) openMenu(false);
+    return;
+  }
+  const language = event.target.closest("[data-language]");
+  if (language) return applyLanguage(language.dataset.language);
+  if (!event.target.closest(".language-picker")) closeLanguageMenu();
   if (event.target.closest("#menuButton")) return openMenu(true);
   if (event.target.closest("#closeMenu") || event.target === scrim) return openMenu(false);
   const theme = event.target.closest("[data-theme-choice]"); if (theme) return setAppearance("theme", theme.dataset.themeChoice);
@@ -279,13 +361,13 @@ document.addEventListener("click", async event => {
   }
   const addTag = event.target.closest("[data-add-tag]"); if (addTag) return addCustomTag(addTag.closest("[data-tag-picker]").querySelector("[data-tag-input]"));
   if (event.target.closest("#instructionsButton")) { const list = document.querySelector("#menuGuideList"); list.hidden = !list.hidden; return; }
-  const copy = event.target.closest("[data-copy-key]"); if (copy) { try { await navigator.clipboard.writeText(WATA_REFERENCE_COPY[copy.dataset.copyKey]); copy.textContent = "Copied"; setTimeout(() => { copy.textContent = "Copy again"; }, 1200); } catch { copy.textContent = "Copy unavailable"; } return; }
+  const copy = event.target.closest("[data-copy-key]"); if (copy) { try { await navigator.clipboard.writeText(translateText(WATA_REFERENCE_COPY[copy.dataset.copyKey], currentLanguage)); copy.textContent = translateText("Copied", currentLanguage); setTimeout(() => { copy.textContent = translateText("Copy again", currentLanguage); }, 1200); } catch { copy.textContent = translateText("Copy unavailable", currentLanguage); } return; }
   const appTarget = event.target.closest("[data-app-url]"); if (appTarget) { window.open(appTarget.dataset.appUrl, "_blank", "noopener,noreferrer"); return; }
   const view = event.target.closest("[data-view]"); if (view) { currentView = view.dataset.view; history.replaceState(null, "", `#${currentView}`); openMenu(false); render(); scrollTo({ top: 0, behavior: "smooth" }); return; }
   if (event.target.closest("#retryButton")) { if (state.error?.status === 401 || state.error?.status === 403) return dataAdapter.signIn(); return loadBootstrap(); }
 });
 
-document.addEventListener("keydown", event => { if (event.key === "Enter" && event.target.matches("[data-tag-input]")) { event.preventDefault(); addCustomTag(event.target); return; } if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-app-url]")) { event.preventDefault(); event.target.click(); } if (event.key === "Escape") openMenu(false); });
+document.addEventListener("keydown", event => { if (event.key === "Enter" && event.target.matches("[data-tag-input]")) { event.preventDefault(); addCustomTag(event.target); return; } if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-app-url]")) { event.preventDefault(); event.target.click(); } if (event.key === "Escape") { closeLanguageMenu(); openMenu(false); } });
 
 document.addEventListener("change", async event => {
   if (event.target.id !== "avatarInput") return;
@@ -294,8 +376,8 @@ document.addEventListener("change", async event => {
     const avatarUrl = await readAvatar(event.target.files?.[0]);
     document.querySelector("#avatarUrl").value = avatarUrl;
     const avatar = document.querySelector(".profile-avatar"); avatar.innerHTML = `<img src="${avatarUrl}" alt="Profile photo preview">`;
-    if (message) message.textContent = "Photo ready. Save your profile to keep it on this device.";
-  } catch (error) { if (message) message.textContent = error.message; }
+    if (message) message.textContent = translateText("Photo ready. Save your profile to keep it on this device.", currentLanguage);
+  } catch (error) { if (message) message.textContent = translateText(error.message, currentLanguage); }
 });
 
 document.addEventListener("submit", async event => {
@@ -304,7 +386,7 @@ document.addEventListener("submit", async event => {
   const values = Object.fromEntries(new FormData(event.target));
   const profile = { ...state.bootstrap.profile, ...values, skills: values.skills.split(",").map(value => value.trim()).filter(Boolean), interests: values.interests.split(",").map(value => value.trim()).filter(Boolean) };
   const result = await dataAdapter.updateProfile(profile); state.bootstrap.profile = result.profile; state.saving = false; render();
-  const message = document.querySelector("#profileMessage"); if (message) message.textContent = "Saved locally for this interface pass. The shared profile service will replace this adapter later.";
+  const message = document.querySelector("#profileMessage"); if (message) message.textContent = translateText("Saved locally for this interface pass. The shared profile service will replace this adapter later.", currentLanguage);
 });
 
 addEventListener("online", () => loadBootstrap({ background: Boolean(state.bootstrap) }));

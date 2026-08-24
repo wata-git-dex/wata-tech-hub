@@ -140,6 +140,20 @@ body{background:radial-gradient(circle at 76% 0,color-mix(in srgb,var(--accent-1
 .topbar-title{position:absolute;left:50%;display:grid;justify-items:center;max-width:calc(100% - 150px);transform:translateX(-50%);text-align:center;white-space:nowrap}
 .topbar-title strong{overflow:hidden;max-width:100%;font-size:13px;letter-spacing:.12em;text-overflow:ellipsis;text-transform:uppercase}
 .topbar-title small{margin-top:3px;color:var(--accent-1);font-size:8px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+.topbar{overflow:visible}
+.topbar-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.topbar-actions .menu-button{margin-left:0}
+.language-picker{position:relative}
+.language-button{display:grid;place-items:center;width:42px;height:42px;padding:0;color:var(--text);background:color-mix(in srgb,var(--panel) 78%,transparent);border:1px solid color-mix(in srgb,var(--accent-1) 28%,var(--line));border-radius:50%;box-shadow:0 8px 20px rgba(0,0,0,.12)}
+.language-button:hover,.language-button[aria-expanded="true"]{background:var(--panel-2);border-color:color-mix(in srgb,var(--accent-1) 58%,var(--line))}
+.language-globe{font-size:18px;line-height:1}
+.language-menu{position:absolute;top:calc(100% + 10px);right:0;z-index:50;width:190px;padding:7px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.language-menu button{display:grid;grid-template-columns:26px 1fr 18px;align-items:center;gap:8px;width:100%;padding:10px;color:var(--text);background:transparent;border:0;border-radius:10px;text-align:left}
+.language-menu button:hover,.language-menu button.active{background:var(--panel-2)}
+.language-menu button>span:first-child{font-size:20px}
+.language-menu strong{font-size:13px}
+.language-check{visibility:hidden;color:var(--green);font-weight:900}
+.language-menu button.active .language-check{visibility:visible}
 .goals-card{min-height:0}
 .ein-card{min-height:150px}
 .goals-card ol{display:grid;gap:12px;margin:20px 0 0;padding-left:22px;line-height:1.55}
@@ -152,6 +166,10 @@ body{background:radial-gradient(circle at 76% 0,color-mix(in srgb,var(--accent-1
 .about-boilerplate{min-height:0}
 
 @media(max-width:700px){
-  .topbar-title strong{color:white;font-size:11px;letter-spacing:.09em;text-shadow:0 1px 8px rgba(0,0,0,.28)}
+  .topbar-title{max-width:calc(100% - 244px)}
+  .topbar-actions{gap:7px}
+  .language-button{width:50px;height:50px}
+  .language-menu{right:-57px}
+  .topbar-title strong{color:white;font-size:10px;letter-spacing:.06em;text-shadow:0 1px 8px rgba(0,0,0,.28)}
   .story-grid{grid-template-columns:1fr}
 }
