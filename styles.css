@@ -105,3 +105,10 @@ body{background:radial-gradient(circle at 76% 0,color-mix(in srgb,var(--accent-1
 
 [data-theme="light"] body{background:radial-gradient(circle at 80% 0,color-mix(in srgb,var(--accent-1) 8%,transparent),transparent 34rem),var(--bg)}
 [data-theme="light"] .profile-card{box-shadow:0 20px 55px rgba(39,61,95,.08)}
+
+/* Continuous contour field and unframed quick-link icons. */
+.sidebar nav>a>span,.sidebar nav>.disabled>span{width:30px;height:30px;flex-basis:30px;padding:0;background:transparent;border:0;border-radius:9px;box-shadow:none}
+.sidebar nav img{border-radius:8px}
+.topbar::before{inset:0;background-image:url("assets/topography.svg");background-repeat:no-repeat;background-position:center 44%;background-size:100% 560%;opacity:.22;transform:none}
+.hero-waves{inset:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%;transform:none}
+@media(max-width:700px){.topbar::before{background-position:center 45%;background-size:170% 520%;opacity:.24}.hero-waves{background-position:center;background-size:145% 100%}}
