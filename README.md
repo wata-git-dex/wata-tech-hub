@@ -35,4 +35,6 @@ The legacy `wata-partner-portals-gateway` Pages project is retained temporarily 
 
 ## Install icon
 
-The approved Toolkit artwork is exported in `assets/tech-hub/` at 32, 180, 192, and 512 pixels. The build also publishes conventional `/apple-touch-icon.png` and `/favicon-32.png` paths so macOS, iOS, and browser PWA installers do not fall back to a generated letter icon. Installed web apps retain a local copy of their icon; after an icon release, remove and reinstall an older standalone app to refresh that copy.
+The approved Toolkit artwork is exported in `assets/tech-hub/` at 32, 180, 192, and 512 pixels. The build also publishes conventional `/apple-touch-icon.png` and `/favicon-32.png` paths so macOS, iOS, and browser PWA installers do not fall back to a generated letter icon.
+
+Cloudflare Access application `W.A.T.A. Toolkit Install Assets` bypasses authentication only for the manifest, conventional install icons, and `/assets/tech-hub/icon-*`. This lets an operating-system installer fetch the artwork without exposing the protected Toolkit page, APIs, or user data. Installed web apps retain a local copy of their icon; after an icon release, remove and reinstall an older standalone app to refresh that copy.
