@@ -4,11 +4,11 @@ const CARD_CATALOG = {
     name: "WATAdex",
     description: "Explore W.A.T.A. water knowledge, WATAMON, and field resources.",
     url: "https://wata-git-dex.github.io/watadex/",
-    audience: "Field & team"
+    audience: "Public"
   },
   partner_portal: {
-    name: "Partner Portal",
-    description: "Filter reporting, follow-ups, impact, and issues for approved partners.",
+    name: "Filter Registry",
+    description: "Review filters, follow-ups, impact, and issues within your approved program scope.",
     url: "https://registry.cleanwata.org/",
     audience: "Approved portal users",
     guides: [

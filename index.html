@@ -1,55 +1,58 @@
 <!doctype html>
-<html lang="en" data-product="hub">
+<html lang="en" data-theme="dark" data-accent="cyan">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f4f8fb">
-  <meta name="description" content="Your permission-aware launcher for W.A.T.A. apps and instructions.">
+  <meta name="theme-color" content="#070c16">
+  <meta name="description" content="W.A.T.A. apps, trips, profile, and instructions in one place.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="W.A.T.A. Hub">
-  <script>if(location.protocol==="file:")location.replace(`https://wata.cleanwata.org/${location.hash}`)</script>
+  <meta name="apple-mobile-web-app-title" content="W.A.T.A. Tech Hub">
+  <script>if(location.protocol==="file:")location.replace(`https://app.cleanwata.org/${location.hash}`)</script>
   <script src="theme-init.js"></script>
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="icon" href="/assets/tech-hub/icon-32-v4.png" type="image/png" sizes="32x32">
-  <link rel="apple-touch-icon" href="/assets/tech-hub/apple-touch-icon-v4.png" sizes="180x180">
-  <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="icon" href="/assets/tech-hub/icon-32-v5.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/assets/tech-hub/apple-touch-icon-v5.png" sizes="180x180">
+  <link rel="stylesheet" href="styles.css?v=30">
   <title>W.A.T.A. Tech Hub</title>
 </head>
 <body>
-  <div class="shell hub-shell">
-    <aside class="rail hub-rail" aria-label="Your W.A.T.A. apps">
-      <a class="brand hub-brand" href="#apps" aria-label="W.A.T.A. Tech Hub">
-        <img src="assets/tech-hub/brand-logo-v2.png" alt="" width="46" height="46">
+  <div class="shell">
+    <aside class="sidebar" aria-label="App quick links">
+      <button class="sidebar-brand" type="button" data-view="home" aria-label="Return to apps">
+        <img src="/assets/tech-hub/brand-logo-v3.png" alt="" width="40" height="40">
         <span><strong>W.A.T.A.</strong><small>Tech Hub</small></span>
-      </a>
-      <p class="rail-label">Quick links</p>
-      <nav id="hubQuickLinks" class="hub-quick-links" aria-live="polite"></nav>
-      <div class="rail-foot"><span class="status-dot"></span><span>Checking access</span></div>
+      </button>
+      <p class="sidebar-label">Quick links</p>
+      <nav id="quickLinks" aria-live="polite"></nav>
+      <div class="connection"><span class="connection-dot"></span><span id="connectionLabel">Checking access</span></div>
     </aside>
     <main>
-      <header class="topbar hub-topbar">
-        <div class="hub-heading">
-          <img src="assets/tech-hub/brand-logo-v2.png" alt="" width="38" height="38">
-          <span><strong>W.A.T.A. Tech Hub</strong><small>Apps &amp; instructions</small></span>
-        </div>
-        <div class="top-menu">
-          <button class="menu-button" id="menuButton" type="button" aria-label="Open W.A.T.A. menu" aria-expanded="false" aria-controls="menuPanel"><span></span><span></span><span></span></button>
-          <div class="menu-panel hub-menu-panel" id="menuPanel" hidden>
-            <div class="profile menu-profile" id="profileButton"><span class="avatar">··</span><span><strong>Loading</strong><small>Checking access</small></span></div>
-            <button class="menu-action" type="button" data-hub-scroll="apps"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span><strong>Apps</strong><small>Open an available app</small></span></button>
-            <button class="menu-action" type="button" id="instructionsButton"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a3 3 0 0 1 3-2h5v17H7a3 3 0 0 0-3 2V5Z"/><path d="M20 5a3 3 0 0 0-3-2h-5v17h5a3 3 0 0 1 3 2V5Z"/></svg><span><strong>Instructions</strong><small>PDF and PNG quick guides</small></span></button>
-            <div class="menu-guide-list" id="menuGuideList" hidden></div>
-            <button class="menu-action" type="button" data-view="about"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.1"/></svg><span><strong>About W.A.T.A.</strong><small>Mission, vision, and grant copy</small></span></button>
-            <button class="menu-action" type="button" data-view="settings"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/></svg><span><strong>Settings & help</strong><small>Access and app guidance</small></span></button>
-            <button class="menu-action" id="themeToggle" type="button" aria-label="Switch color theme" aria-pressed="false"><span class="theme-icon" aria-hidden="true">☾</span><span><strong><span class="theme-label">Dark</span> mode</strong><small>Change app appearance</small></span></button>
-          </div>
-        </div>
+      <header class="topbar">
+        <button class="home-mark" type="button" data-view="home" aria-label="Return to apps"><img src="/assets/tech-hub/brand-logo-v3.png" alt="" width="42" height="42"></button>
+        <button class="menu-button" id="menuButton" type="button" aria-label="Open W.A.T.A. menu" aria-expanded="false" aria-controls="menuDrawer"><span></span><span></span><span></span></button>
       </header>
-      <section id="app" class="content hub-content" aria-live="polite"></section>
-      <footer class="site-footer"><img src="assets/wata-logo.png" alt="" width="30" height="30"><span>Water Access to All</span></footer>
+      <section id="app" class="content" aria-live="polite"></section>
+      <footer class="site-footer"><img src="/assets/wata-logo.png" alt="" width="26" height="26"><span>Water Access to All</span><small>Tech Hub v1.1.0</small></footer>
     </main>
   </div>
-  <script type="module" src="app.js?v=29"></script>
+  <div class="drawer-scrim" id="drawerScrim" hidden></div>
+  <aside class="menu-drawer" id="menuDrawer" aria-label="Tech Hub menu" aria-hidden="true">
+    <div class="drawer-head"><div id="menuProfile" class="menu-profile"><span class="avatar">··</span><span><strong>Loading</strong><small>Checking access</small></span></div><button id="closeMenu" class="close-button" type="button" aria-label="Close menu">×</button></div>
+    <nav class="drawer-nav">
+      <button type="button" data-view="home"><span>Apps</span><small>Your available tools</small></button>
+      <button type="button" data-view="profile"><span>Profile</span><small>Your shared W.A.T.A. details</small></button>
+      <button type="button" id="instructionsButton"><span>Instructions</span><small>PDF and PNG guides</small></button>
+      <div class="guide-list" id="menuGuideList" hidden></div>
+      <button type="button" data-view="about"><span>About W.A.T.A.</span><small>Mission, vision, EIN, and boilerplate</small></button>
+      <button type="button" data-view="settings"><span>Settings &amp; help</span><small>Access, offline use, and support</small></button>
+    </nav>
+    <div class="appearance">
+      <p>Appearance</p>
+      <div class="theme-choice" role="group" aria-label="Color theme"><button type="button" data-theme-choice="dark">Dark</button><button type="button" data-theme-choice="light">Light</button></div>
+      <div class="accent-choice" role="group" aria-label="Accent color"><button type="button" data-accent-choice="cyan" aria-label="Cyan accent"></button><button type="button" data-accent-choice="pink" aria-label="Pink accent"></button><button type="button" data-accent-choice="blue" aria-label="Blue accent"></button><button type="button" data-accent-choice="neutral" aria-label="Neutral accent"></button></div>
+    </div>
+  </aside>
+  <script type="module" src="app.js?v=31"></script>
 </body>
 </html>

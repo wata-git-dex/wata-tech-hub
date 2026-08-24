@@ -2,7 +2,8 @@
 
 The central, access-aware launcher for W.A.T.A. applications and share-ready instructions.
 
-- Production: `https://wata.cleanwata.org`
+- Production: `https://app.cleanwata.org`
+- Compatibility address: `https://wata.cleanwata.org`
 - Preview: `https://wata-tech-hub.pages.dev`
 - Cloudflare project: `wata-tech-hub`
 - Access directory: Airtable `🔐 App Access`
@@ -16,10 +17,18 @@ npm run build
 
 The static site and Pages advanced-mode Worker are written to `dist/`. Cloudflare Pages is connected directly to this GitHub repository and deploys `main` automatically with `npm run build` and `dist` as its output directory.
 
+## Shared-data integration boundary
+
+`data-adapter.js` is the only UI-facing identity/data boundary. The interface calls `getSession()`, `signIn(email)`, `signOut()`, `getBootstrap()`, and `updateProfile(profile)` there. Today, `getBootstrap()` preserves the existing `/api/bootstrap` request and normalizes the current Airtable/Worker payload into the future shared response shape (`user`, `profile`, `roles`, `apps`, and `trips`).
+
+Profile edits in this interface pass are explicitly temporary local drafts. They do not create a Tech-Hub-only users table, profile database, authentication service, or roles/permissions matrix. The later ecosystem identity integration should replace the adapter internals, not the views.
+
 ## Deployment boundary
 
 This repository owns only the Tech Hub frontend, PWA, icons, instructions, and Hub gateway. `/api/` uses a service binding named `PORTAL` to the proven authorization/data Worker, `wata-partner-portals`. Registry frontend code and Registry PWA assets are not deployed from this repository.
 
-Cloudflare Access protects the production hostname with the `Airtable App Access directory` policy. The Access application includes both `wata.cleanwata.org` and the current `wata-tech-hub.pages.dev` project destination so the production hostname remains attached to the correct Pages project.
+Cloudflare Access protects the production hostnames with the existing `Airtable App Access directory` policy. The final Access application includes `app.cleanwata.org`, the compatibility address `wata.cleanwata.org`, and the current `wata-tech-hub.pages.dev` project destination.
+
+The Hub shows one `Filter Registry` app. `Partner Portal` is the partner-scoped experience inside that Registry, not a separate Hub app or deployment.
 
 The legacy `wata-partner-portals-gateway` Pages project is retained temporarily for rollback only. It no longer owns the Tech Hub production domain.

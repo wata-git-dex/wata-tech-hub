@@ -1,10 +1,10 @@
 {
   "name": "wata-tech-hub",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "./scripts/build.sh",
-    "check": "node --check app.js && node --check gateway.js && node --check sw.js"
+    "check": "node --check app.js && node --check data-adapter.js && node --check gateway.js && node --check sw.js && node --test test/*.test.mjs"
   }
 }
