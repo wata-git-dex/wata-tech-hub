@@ -38,11 +38,9 @@ function statusLabel(status) {
 
 function appCard(appData) {
   const ready = appData.status === "ready" && Boolean(appData.url);
-  const guides = guideList(appData);
   return `<article class="app-card ${ready ? "ready" : "soon"}" tabindex="${ready ? "0" : "-1"}" ${ready ? `role="link" data-app-url="${escapeHtml(appData.url)}"` : ""}>
     <div class="card-top"><span class="card-icon">${iconFor(appData)}</span><span class="status ${ready ? "ready" : "soon"}">${statusLabel(appData.status)}</span></div>
     <h3>${escapeHtml(appData.name)}</h3><p>${escapeHtml(appData.description)}</p>
-    <details class="instructions"><summary>Instructions <span aria-hidden="true">⌄</span></summary><div>${guides.length ? guides.map(guide => `<a href="${escapeHtml(guide.url)}" target="_blank" rel="noopener noreferrer"><b>${escapeHtml(guide.format)}</b>${escapeHtml(guide.label)}</a>`).join("") : `<span>PDF and PNG guide coming soon</span>`}</div></details>
   </article>`;
 }
 
@@ -66,7 +64,7 @@ function homeView() {
   const development = apps.filter(item => item.status !== "ready");
   return `<section class="hero"><div class="hero-waves" aria-hidden="true"></div><div><p class="eyebrow">W.A.T.A. Tech Hub</p><h1>Apps &amp; instructions</h1><p>Links and guides available to your account.</p></div></section>
     ${trips.length ? `<section class="trips"><div class="section-head"><div><h2>Upcoming trips</h2><p>Your confirmed assignments.</p></div></div>${trips.map(tripRow).join("")}</section>` : ""}
-    <section id="apps"><div class="section-head"><div><h2>Apps</h2><p>${ready.length ? "Open an app or expand its instructions." : "No apps are currently assigned to this account."}</p></div></div>${ready.length ? `<div class="app-grid">${ready.map(appCard).join("")}</div>` : `<div class="empty-state"><strong>No apps assigned</strong><p>Your Airtable App Access record is active, but no app checkboxes are currently enabled.</p></div>`}</section>
+    <section id="apps"><div class="section-head"><div><h2>Apps</h2><p>${ready.length ? "Tap an app to open it." : "No apps are currently assigned to this account."}</p></div></div>${ready.length ? `<div class="app-grid">${ready.map(appCard).join("")}</div>` : `<div class="empty-state"><strong>No apps assigned</strong><p>Your Airtable App Access record is active, but no app checkboxes are currently enabled.</p></div>`}</section>
     ${development.length ? `<section class="development"><div class="section-head"><div><h2>In development</h2><p>Tools being built or prepared.</p></div></div><div class="app-grid">${development.map(appCard).join("")}</div></section>` : ""}
     ${state.offlineSnapshot ? `<div class="offline-note">Showing your last verified app view. Links may require a connection.</div>` : ""}`;
 }
@@ -105,7 +103,7 @@ function aboutView() {
 function settingsView() {
   return `<header class="view-head"><p class="eyebrow">Tech Hub</p><h1>Settings &amp; help</h1><p>How access, updates, and offline behavior work.</p></header><div class="help-grid">
     <article><span>01</span><h3>Your access</h3><p>Your active Airtable App Access record and individual checkboxes control the apps shown here. Partner access to the Filter Registry is scoped inside the Registry; Partner Portal is not a separate app.</p></article>
-    <article><span>02</span><h3>Instructions</h3><p>Expand Instructions on a card or open the menu to reach each app’s current PDF and share-ready PNG.</p></article>
+    <article><span>02</span><h3>Instructions</h3><p>Open Instructions from the menu to reach each app’s current PDF and share-ready PNG.</p></article>
     <article><span>03</span><h3>Offline use</h3><p>The Hub remembers your last verified launcher view for up to seven days. Opening external apps and refreshing access still require a connection.</p></article>
     <article><span>04</span><h3>Shared identity</h3><p>This interface is prepared for the future shared W.A.T.A. account system. It does not create another authentication, roles, profiles, or permissions backend.</p></article>
   </div>`;
@@ -183,7 +181,6 @@ document.addEventListener("click", async event => {
   const theme = event.target.closest("[data-theme-choice]"); if (theme) return setAppearance("theme", theme.dataset.themeChoice);
   const accent = event.target.closest("[data-accent-choice]"); if (accent) return setAppearance("accent", accent.dataset.accentChoice);
   if (event.target.closest("#instructionsButton")) { const list = document.querySelector("#menuGuideList"); list.hidden = !list.hidden; return; }
-  const details = event.target.closest(".instructions"); if (details) { event.stopPropagation(); return; }
   const copy = event.target.closest("[data-copy-key]"); if (copy) { try { await navigator.clipboard.writeText(WATA_REFERENCE_COPY[copy.dataset.copyKey]); copy.textContent = "Copied"; setTimeout(() => { copy.textContent = "Copy again"; }, 1200); } catch { copy.textContent = "Copy unavailable"; } return; }
   const appTarget = event.target.closest("[data-app-url]"); if (appTarget) { window.open(appTarget.dataset.appUrl, "_blank", "noopener,noreferrer"); return; }
   const view = event.target.closest("[data-view]"); if (view) { currentView = view.dataset.view; history.replaceState(null, "", `#${currentView}`); openMenu(false); render(); scrollTo({ top: 0, behavior: "smooth" }); return; }

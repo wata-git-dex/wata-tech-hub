@@ -5,4 +5,41 @@
 @media(max-width:900px){.app-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.shell{display:block}.sidebar{display:none}.topbar{min-height:calc(64px + env(safe-area-inset-top));padding:calc(9px + env(safe-area-inset-top)) 16px 9px}.home-mark{display:block}.content{padding:18px 14px 40px}.hero{min-height:135px;padding:21px 20px;border-radius:18px}.hero h1{font-size:31px}.section-head h2{font-size:24px}.app-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.app-card{min-height:235px;padding:15px}.card-icon{width:48px;height:48px}.app-card h3{font-size:17px}.app-card>p{font-size:12px}.profile-grid,.copy-grid,.help-grid{grid-template-columns:1fr}.profile-field.wide,.copy-card.wide{grid-column:auto}.profile-card{padding:18px}.form-note{display:block;margin:10px 0 0}.trip-role{max-width:96px;text-align:center}.site-footer{padding-bottom:calc(28px + env(safe-area-inset-bottom))}}
 @media(max-width:420px){.app-grid{grid-template-columns:1fr}.app-card{min-height:220px}.trip-row{align-items:flex-start}.trip-role{display:none}.about-banner{display:grid}}
+
+/* Launcher refinement: guides live in the menu; mobile cards stay compact. */
+.app-card{min-height:205px}
+.topbar{isolation:isolate;overflow:hidden;background:linear-gradient(110deg,color-mix(in srgb,var(--accent-2) 10%,var(--bg)),color-mix(in srgb,var(--accent-1) 5%,var(--bg)))}
+.topbar::before{position:absolute;inset:-70px -20px;z-index:-1;background-image:linear-gradient(90deg,color-mix(in srgb,var(--accent-1) 7%,transparent),transparent 65%),url("assets/topography.svg");background-position:center;background-size:760px auto;content:"";opacity:.18;pointer-events:none}
+
+@media(max-width:700px){
+  .topbar{min-height:calc(72px + env(safe-area-inset-top));padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent-2) 22%,#0d1b31),#081424 72%);border-bottom-color:color-mix(in srgb,var(--accent-1) 28%,var(--line));box-shadow:0 12px 36px rgba(0,0,0,.18)}
+  .topbar::before{opacity:.3;background-size:560px auto}
+  .home-mark{display:grid;place-items:center;width:50px;height:50px;padding:3px;background:color-mix(in srgb,var(--panel) 72%,transparent);border:1px solid color-mix(in srgb,var(--accent-1) 34%,var(--line));border-radius:15px;box-shadow:inset 0 0 20px color-mix(in srgb,var(--accent-1) 7%,transparent),0 8px 20px rgba(0,0,0,.16)}
+  .home-mark img{width:42px;height:42px}
+  .menu-button{width:50px;height:50px;background:color-mix(in srgb,var(--panel) 72%,transparent);border-color:color-mix(in srgb,var(--accent-1) 34%,var(--line));border-radius:15px;box-shadow:inset 0 0 20px color-mix(in srgb,var(--accent-1) 6%,transparent),0 8px 20px rgba(0,0,0,.16)}
+  .content{padding:10px 14px 40px;background:linear-gradient(180deg,color-mix(in srgb,var(--accent-1) 6%,transparent),transparent 250px)}
+  .hero{min-height:0;margin-bottom:28px;padding:20px;border-color:color-mix(in srgb,var(--accent-1) 48%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--accent-2) 22%,#12233e),#0a182c 75%);box-shadow:0 18px 45px rgba(0,0,0,.2),inset 0 1px 0 color-mix(in srgb,var(--accent-1) 14%,transparent)}
+  [data-theme="light"] .hero{background:linear-gradient(135deg,#15315a,#0d1c35 75%)}
+  .hero-waves{opacity:.48;background-size:520px auto}
+  .hero h1{font-size:29px}
+  .hero p:last-child{font-size:13px}
+  .app-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 8px}
+  .app-card{min-width:0;min-height:0;padding:4px 2px;align-items:center;text-align:center;background:transparent;border:0;border-radius:14px;box-shadow:none}
+  .app-card.ready:hover{transform:none;border-color:transparent;box-shadow:none}
+  .card-top{display:grid;justify-items:center;gap:6px;width:100%;margin:0}
+  .card-icon{width:72px;height:72px;padding:4px;border-radius:20px;box-shadow:0 10px 24px color-mix(in srgb,var(--accent-2) 18%,transparent)}
+  .card-icon img{border-radius:16px}
+  .status{padding:3px 6px;font-size:7px;line-height:1.2;letter-spacing:.06em}
+  .app-card h3{margin:7px 0 0;max-width:100%;font-size:12px;line-height:1.25;overflow-wrap:anywhere}
+  .app-card>p{display:none}
+  .development{margin-top:32px}
+}
+
+@media(max-width:420px){
+  .app-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:17px 7px}
+  .card-icon{width:68px;height:68px}
+  .trip-row{align-items:flex-start}
+  .trip-role{display:none}
+  .about-banner{display:grid}
+}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
