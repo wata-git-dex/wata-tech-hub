@@ -1,4 +1,4 @@
-const VERSION = "wata-tech-hub-v19";
+const VERSION = "wata-tech-hub-v20";
 const APP_SHELL = [
   "/", "/index.html", "/styles.css?v=35", "/app.js?v=34", "/data-adapter.js", "/theme-init.js",
   "/assets/tech-hub/brand-logo-v3.png",

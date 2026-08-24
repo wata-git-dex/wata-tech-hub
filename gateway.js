@@ -76,7 +76,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.hostname === "wata.cleanwata.org") {
-      url.hostname = "app.cleanwata.org";
+      url.hostname = "toolkit.cleanwata.org";
       return Response.redirect(url.toString(), 308);
     }
     if (url.pathname.startsWith("/api/")) {

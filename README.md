@@ -2,8 +2,8 @@
 
 The central, access-aware launcher for W.A.T.A. applications and share-ready instructions.
 
-- Production: `https://app.cleanwata.org`
-- Compatibility address: `https://wata.cleanwata.org`
+- Production: `https://toolkit.cleanwata.org`
+- Compatibility addresses: `https://app.cleanwata.org`, `https://wata.cleanwata.org`
 - Preview: `https://wata-tech-hub.pages.dev`
 - Cloudflare project: `wata-tech-hub`
 - Access directory: Airtable `🔐 App Access`
@@ -27,7 +27,7 @@ Profile edits in this interface pass are explicitly temporary local drafts. They
 
 This repository owns only the Toolkit frontend, PWA, icons, instructions, and gateway. `/api/` uses a service binding named `PORTAL` to the proven authorization/data Worker, `wata-partner-portals`. Registry frontend code and Registry PWA assets are not deployed from this repository.
 
-Cloudflare Access protects the production hostnames with the existing `Airtable App Access directory` policy. The final Access application includes `app.cleanwata.org`, the compatibility address `wata.cleanwata.org`, and the current `wata-tech-hub.pages.dev` project destination.
+Cloudflare Access protects the production hostnames with the existing `Airtable App Access directory` policy. The Access application includes canonical `toolkit.cleanwata.org`, compatibility addresses `app.cleanwata.org` and `wata.cleanwata.org`, and the current `wata-tech-hub.pages.dev` project destination. Normal browser visits to `app.cleanwata.org` move to the canonical Toolkit address; an existing standalone PWA remains available on the old origin until it is reinstalled.
 
 The Toolkit shows one `Filter Registry` app. `Partner Portal` is the partner-scoped experience inside that Registry, not a separate app or deployment.
 
