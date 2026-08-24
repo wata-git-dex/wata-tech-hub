@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "W.A.T.A. Tech Hub",
-  "short_name": "W.A.T.A. Hub",
-  "description": "W.A.T.A. apps, trips, profile, and instructions in one place.",
+  "name": "W.A.T.A. Toolkit",
+  "short_name": "W.A.T.A. Toolkit",
+  "description": "W.A.T.A. apps, profile, trips, and instructions in one place.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

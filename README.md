@@ -1,4 +1,4 @@
-# W.A.T.A. Tech Hub
+# W.A.T.A. Toolkit
 
 The central, access-aware launcher for W.A.T.A. applications and share-ready instructions.
 
@@ -21,14 +21,14 @@ The static site and Pages advanced-mode Worker are written to `dist/`. Cloudflar
 
 `data-adapter.js` is the only UI-facing identity/data boundary. The interface calls `getSession()`, `signIn(email)`, `signOut()`, `getBootstrap()`, and `updateProfile(profile)` there. Today, `getBootstrap()` preserves the existing `/api/bootstrap` request and normalizes the current Airtable/Worker payload into the future shared response shape (`user`, `profile`, `roles`, `apps`, and `trips`).
 
-Profile edits in this interface pass are explicitly temporary local drafts. They do not create a Tech-Hub-only users table, profile database, authentication service, or roles/permissions matrix. The later ecosystem identity integration should replace the adapter internals, not the views.
+Profile edits in this interface pass are explicitly temporary local drafts. They do not create a Toolkit-only users table, profile database, authentication service, or roles/permissions matrix. The later ecosystem identity integration should replace the adapter internals, not the views.
 
 ## Deployment boundary
 
-This repository owns only the Tech Hub frontend, PWA, icons, instructions, and Hub gateway. `/api/` uses a service binding named `PORTAL` to the proven authorization/data Worker, `wata-partner-portals`. Registry frontend code and Registry PWA assets are not deployed from this repository.
+This repository owns only the Toolkit frontend, PWA, icons, instructions, and gateway. `/api/` uses a service binding named `PORTAL` to the proven authorization/data Worker, `wata-partner-portals`. Registry frontend code and Registry PWA assets are not deployed from this repository.
 
 Cloudflare Access protects the production hostnames with the existing `Airtable App Access directory` policy. The final Access application includes `app.cleanwata.org`, the compatibility address `wata.cleanwata.org`, and the current `wata-tech-hub.pages.dev` project destination.
 
-The Hub shows one `Filter Registry` app. `Partner Portal` is the partner-scoped experience inside that Registry, not a separate Hub app or deployment.
+The Toolkit shows one `Filter Registry` app. `Partner Portal` is the partner-scoped experience inside that Registry, not a separate app or deployment.
 
-The legacy `wata-partner-portals-gateway` Pages project is retained temporarily for rollback only. It no longer owns the Tech Hub production domain.
+The legacy `wata-partner-portals-gateway` Pages project is retained temporarily for rollback only. It no longer owns the Toolkit production domain.

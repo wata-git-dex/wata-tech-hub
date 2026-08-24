@@ -122,3 +122,16 @@ body{background:radial-gradient(circle at 76% 0,color-mix(in srgb,var(--accent-1
   .app-card h3{grid-row:3;align-self:start;justify-self:stretch;display:block;min-height:0;margin:5px 0 0;padding:0 2px;text-align:center}
   .development{margin-top:58px}
 }
+
+/* Choice-first shared-profile controls. */
+.profile-avatar,.avatar{overflow:hidden}
+.profile-avatar{width:64px;height:64px}
+.profile-avatar img,.avatar img{width:100%;height:100%;object-fit:cover}
+.profile-photo{display:grid;justify-items:center;gap:5px;color:var(--accent-1);font-size:10px;font-weight:800;cursor:pointer}
+.profile-field select{width:100%;min-height:45px;padding:12px 13px;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:11px;outline:none}
+.profile-field select:focus{border-color:var(--accent-1)}
+.field-help{display:block;margin:5px 0 9px;color:var(--muted);font-size:11px;line-height:1.45}
+.tag-adder{display:grid;grid-template-columns:1fr auto;gap:8px;padding:0 12px 12px}
+.tag-adder input{min-width:0;padding:9px 10px;font-size:11px}
+.tag-adder button{padding:8px 13px;color:var(--text);background:color-mix(in srgb,var(--accent-1) 13%,var(--panel-2));border:1px solid color-mix(in srgb,var(--accent-1) 35%,var(--line));border-radius:9px;font-size:11px;font-weight:800}
+@media(max-width:700px){.profile-summary{align-items:flex-start}.tag-options{max-height:240px;overflow-y:auto}.tag-adder{grid-template-columns:minmax(0,1fr) auto}}

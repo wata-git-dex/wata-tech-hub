@@ -121,7 +121,7 @@ export const dataAdapter = {
   async getBootstrap({ signal } = {}) {
     const response = await fetch("/api/bootstrap", { headers: { accept: "application/json" }, cache: "no-store", signal });
     const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw Object.assign(new Error(body.error || "Tech Hub unavailable"), { status: response.status });
+    if (!response.ok) throw Object.assign(new Error(body.error || "Toolkit unavailable"), { status: response.status });
     const normalized = normalizeBootstrap(body);
     const draft = readDraft();
     if (draft && draft.email === normalized.profile.email) normalized.profile = { ...normalized.profile, ...draft.profile };
