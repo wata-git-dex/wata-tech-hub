@@ -10,5 +10,7 @@ fi
 mkdir -p "$dist_dir"
 cp "$project_dir/index.html" "$project_dir/app.js" "$project_dir/i18n.js" "$project_dir/data-adapter.js" "$project_dir/partner-branding.js" "$project_dir/styles.css" "$project_dir/theme-init.js" "$project_dir/manifest.webmanifest" "$project_dir/sw.js" "$project_dir/_headers" "$dist_dir/"
 cp -R "$project_dir/assets" "$dist_dir/assets"
+cp "$project_dir/assets/tech-hub/apple-touch-icon-v6.png" "$dist_dir/apple-touch-icon.png"
+cp "$project_dir/assets/tech-hub/icon-32-v6.png" "$dist_dir/favicon-32.png"
 cp -R "$project_dir/guides" "$dist_dir/guides"
 cp "$project_dir/gateway.js" "$dist_dir/_worker.js"

@@ -32,3 +32,7 @@ Cloudflare Access protects the production hostnames with the existing `Airtable 
 The Toolkit shows one `Filter Registry` app. `Partner Portal` is the partner-scoped experience inside that Registry, not a separate app or deployment.
 
 The legacy `wata-partner-portals-gateway` Pages project is retained temporarily for rollback only. It no longer owns the Toolkit production domain.
+
+## Install icon
+
+The approved Toolkit artwork is exported in `assets/tech-hub/` at 32, 180, 192, and 512 pixels. The build also publishes conventional `/apple-touch-icon.png` and `/favicon-32.png` paths so macOS, iOS, and browser PWA installers do not fall back to a generated letter icon. Installed web apps retain a local copy of their icon; after an icon release, remove and reinstall an older standalone app to refresh that copy.
