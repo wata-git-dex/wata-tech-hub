@@ -69,7 +69,7 @@ function syncLanguageControl() {
   const label = translateText("Choose language", currentLanguage);
   languageMenuButton?.setAttribute("aria-label", label);
   languageMenuButton?.setAttribute("title", label);
-  languageMenu?.querySelectorAll("[data-language]").forEach(option => {
+  document.querySelectorAll("[data-language]").forEach(option => {
     const active = option.dataset.language === currentLanguage;
     option.classList.toggle("active", active);
     option.setAttribute("aria-pressed", String(active));
@@ -81,6 +81,10 @@ function syncLanguageControl() {
   if (topbarTitle) topbarTitle.setAttribute("aria-label", spanish ? "Agua para Todas las Personas" : "Water Access to All");
   if (topbarBrand) topbarBrand.textContent = spanish ? "Agua para todos" : "Water Access to All";
   if (topbarProduct) topbarProduct.textContent = spanish ? "Kit W.A.T.A." : "W.A.T.A. Toolkit";
+  const drawerLanguageValue = document.querySelector("#drawerLanguageValue");
+  if (drawerLanguageValue) drawerLanguageValue.textContent = spanish ? "Español" : "English";
+  const appearanceValue = document.querySelector("#appearanceValue");
+  if (appearanceValue) appearanceValue.textContent = translateText(document.documentElement.dataset.theme === "light" ? "Light" : "Dark", currentLanguage);
 }
 
 function closeLanguageMenu() {
@@ -270,6 +274,25 @@ function setAppearance(kind, value) {
   localStorage.setItem(kind === "theme" ? "wata-theme" : "wata-accent", value);
   document.querySelector('meta[name="theme-color"]').content = document.documentElement.dataset.theme === "dark" ? "#08101c" : "#eef3f9";
   document.querySelectorAll(`[data-${kind}-choice]`).forEach(button => button.classList.toggle("active", button.dataset[`${kind}Choice`] === value));
+  if (kind === "theme") {
+    const appearanceValue = document.querySelector("#appearanceValue");
+    if (appearanceValue) appearanceValue.textContent = translateText(value === "light" ? "Light" : "Dark", currentLanguage);
+  }
+}
+
+function toggleDrawerPanel(buttonId, panelId) {
+  const button = document.querySelector(`#${buttonId}`);
+  const panel = document.querySelector(`#${panelId}`);
+  if (!button || !panel) return;
+  const open = panel.hidden;
+  for (const other of document.querySelectorAll(".drawer-submenu")) {
+    if (other !== panel) other.hidden = true;
+  }
+  document.querySelectorAll('[aria-controls="appearancePanel"], [aria-controls="drawerLanguagePanel"], [aria-controls="menuGuideList"]').forEach(control => {
+    if (control !== button) control.setAttribute("aria-expanded", "false");
+  });
+  panel.hidden = !open;
+  button.setAttribute("aria-expanded", String(open));
 }
 
 function updateConnection() {
@@ -360,7 +383,9 @@ document.addEventListener("click", async event => {
     return;
   }
   const addTag = event.target.closest("[data-add-tag]"); if (addTag) return addCustomTag(addTag.closest("[data-tag-picker]").querySelector("[data-tag-input]"));
-  if (event.target.closest("#instructionsButton")) { const list = document.querySelector("#menuGuideList"); list.hidden = !list.hidden; return; }
+  if (event.target.closest("#instructionsButton")) return toggleDrawerPanel("instructionsButton", "menuGuideList");
+  if (event.target.closest("#appearanceButton")) return toggleDrawerPanel("appearanceButton", "appearancePanel");
+  if (event.target.closest("#drawerLanguageButton")) return toggleDrawerPanel("drawerLanguageButton", "drawerLanguagePanel");
   const copy = event.target.closest("[data-copy-key]"); if (copy) { try { await navigator.clipboard.writeText(translateText(WATA_REFERENCE_COPY[copy.dataset.copyKey], currentLanguage)); copy.textContent = translateText("Copied", currentLanguage); setTimeout(() => { copy.textContent = translateText("Copy again", currentLanguage); }, 1200); } catch { copy.textContent = translateText("Copy unavailable", currentLanguage); } return; }
   const appTarget = event.target.closest("[data-app-url]"); if (appTarget) { window.open(appTarget.dataset.appUrl, "_blank", "noopener,noreferrer"); return; }
   const view = event.target.closest("[data-view]"); if (view) { currentView = view.dataset.view; history.replaceState(null, "", `#${currentView}`); openMenu(false); render(); scrollTo({ top: 0, behavior: "smooth" }); return; }

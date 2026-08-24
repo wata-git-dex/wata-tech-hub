@@ -10,6 +10,8 @@ test("normalizes the shared W.A.T.A. language preference", () => {
 
 test("translates Toolkit interface and mission copy into Spanish", () => {
   assert.equal(translateText("Apps & instructions", "es"), "Aplicaciones e instrucciones");
+  assert.equal(translateText("Language", "es"), "Idioma");
+  assert.equal(translateText("Settings", "es"), "Configuración");
   assert.match(translateText("Water Access To All brings clean, safe drinking water to communities without reliable access—installing filtration systems while developing the local capacity and leadership to carry the work forward.", "es"), /agua potable limpia y segura/);
   assert.equal(translateText("WATAdex", "es"), "WATAdex");
   assert.equal(translateText("Unrecognized profile value", "es"), "Unrecognized profile value");

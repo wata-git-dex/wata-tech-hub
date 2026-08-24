@@ -26,6 +26,8 @@ const ES = Object.freeze({
   "Settings & help": "Configuración y ayuda",
   "Access, offline use, and support": "Acceso, uso sin conexión y soporte",
   "Appearance": "Apariencia",
+  "Settings": "Configuración",
+  "Language": "Idioma",
   "Color theme": "Tema de color",
   "Dark": "Oscuro",
   "Light": "Claro",
