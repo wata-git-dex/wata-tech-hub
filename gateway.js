@@ -75,6 +75,10 @@ async function applyHubCatalog(response) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.hostname === "wata.cleanwata.org") {
+      url.hostname = "app.cleanwata.org";
+      return Response.redirect(url.toString(), 308);
+    }
     if (url.pathname.startsWith("/api/")) {
       const backendUrl = new URL(url.pathname + url.search, LEGACY_BACKEND);
       const backendRequest = new Request(backendUrl, request);
