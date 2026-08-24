@@ -8,6 +8,10 @@ const WATA_REFERENCE_COPY = Object.freeze({
   taxId: "99-2348652",
   boilerplate: "Water Access To All (W.A.T.A.) is a registered 501(c)(3) nonprofit bringing clean, safe drinking water to communities without reliable access through filtration, training, and locally led implementation. W.A.T.A. works alongside local leaders and partners to build lasting capacity so communities can carry the work forward."
 });
+const PROFILE_CHOICES = Object.freeze({
+  skills: ["Community organizing", "Education", "Fieldwork", "Filtration", "Fundraising", "Grant writing", "Photography", "Research", "Storytelling", "Technology", "Training", "Translation"],
+  interests: ["Clean water", "Community building", "Conservation", "Education", "Public health", "Storytelling", "Travel", "Youth leadership"]
+});
 
 const state = { loading: true, error: null, bootstrap: null, offlineSnapshot: false, saving: false };
 let currentView = location.hash.slice(1) || "home";
@@ -77,21 +81,29 @@ function inputField(name, label, value, options = {}) {
   return `<label class="profile-field ${options.wide ? "wide" : ""}"><span>${escapeHtml(label)}</span>${control}</label>`;
 }
 
+function tagPicker(name, label, values) {
+  const selected = Array.isArray(values) ? values : [];
+  const choices = [...new Set([...PROFILE_CHOICES[name], ...selected])];
+  return `<div class="profile-field wide tag-field"><details class="tag-picker" data-tag-picker="${name}">
+    <summary><span><strong>${label}</strong><small data-tag-summary>${selected.length ? escapeHtml(selected.join(" · ")) : "Tap to choose"}</small></span><span class="picker-chevron" aria-hidden="true">⌄</span></summary>
+    <div class="tag-options">${choices.map(value => `<button type="button" role="checkbox" data-tag-value="${escapeHtml(value)}" aria-checked="${selected.includes(value)}" class="${selected.includes(value) ? "selected" : ""}">${escapeHtml(value)}</button>`).join("")}</div>
+    <input type="hidden" name="${name}" value="${escapeHtml(selected.join(","))}">
+  </details></div>`;
+}
+
 function profileView() {
   const profile = state.bootstrap.profile;
   const roles = state.bootstrap.roles.map(role => role.replaceAll("_", " ")).join(" · ") || "Member";
   const initials = display(profile.display_name, profile.email).split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
   return `<header class="view-head"><p class="eyebrow">Shared profile</p><h1>Your W.A.T.A. profile</h1><p>This screen is ready for the ecosystem-wide profile service. Until that integration, saved edits remain a local Hub draft.</p></header>
     <form id="profileForm" class="profile-card"><div class="profile-summary"><span class="profile-avatar">${escapeHtml(initials || "W")}</span><div><strong>${escapeHtml(display(profile.display_name, "W.A.T.A. member"))}</strong><small>${escapeHtml(roles)}</small></div></div>
-      <div class="profile-grid">
-        ${inputField("display_name", "Display name", profile.display_name)}${inputField("email", "Email", profile.email, { type: "email" })}
-        ${inputField("phone", "Phone", profile.phone, { type: "tel" })}${inputField("organization", "Organization", profile.organization)}
-        ${inputField("country", "Country", profile.country)}${inputField("city", "City", profile.city)}
-        ${inputField("language", "Preferred language", profile.language)}${inputField("skills", "Skills", display(profile.skills, ""))}
-        ${inputField("interests", "Interests", display(profile.interests, ""))}${inputField("bio", "Short bio", profile.bio, { textarea: true, wide: true })}
-      </div>
-      <fieldset><legend>Emergency contact</legend><div class="profile-grid">${inputField("emergency_contact_name", "Name", profile.emergency_contact_name)}${inputField("emergency_contact_phone", "Phone", profile.emergency_contact_phone, { type: "tel" })}</div></fieldset>
-      <button class="primary-button" type="submit">${state.saving ? "Saving…" : "Save profile draft"}</button><p class="form-note" id="profileMessage">No new profile database is created by this screen.</p>
+      <div class="profile-grid profile-core">${inputField("display_name", "Display name", profile.display_name)}${inputField("country", "Country", profile.country)}${tagPicker("skills", "Skills", profile.skills)}${tagPicker("interests", "Interests", profile.interests)}</div>
+      <details class="profile-more"><summary>Contact &amp; additional details <span aria-hidden="true">⌄</span></summary><div class="profile-grid">
+        ${inputField("email", "Email", profile.email, { type: "email" })}${inputField("phone", "Phone", profile.phone, { type: "tel" })}
+        ${inputField("organization", "Organization", profile.organization)}${inputField("city", "City", profile.city)}
+        ${inputField("language", "Preferred language", profile.language)}${inputField("bio", "Short bio", profile.bio, { textarea: true, wide: true })}
+      </div><fieldset><legend>Emergency contact</legend><div class="profile-grid">${inputField("emergency_contact_name", "Name", profile.emergency_contact_name)}${inputField("emergency_contact_phone", "Phone", profile.emergency_contact_phone, { type: "tel" })}</div></fieldset></details>
+      <button class="primary-button profile-save" type="submit">${state.saving ? "Saving…" : "Save profile"}</button><p class="form-note" id="profileMessage">No new profile database is created by this screen.</p>
     </form>`;
 }
 
@@ -110,7 +122,7 @@ function settingsView() {
 }
 
 function loadingView() {
-  return `<section class="state-card"><div class="loader"><span></span><span></span><span></span></div><p class="eyebrow">W.A.T.A. Tech Hub</p><h1>Loading your workspace</h1><p>Checking the existing Airtable-powered app directory.</p></section>`;
+  return `<section class="hero loading-hero"><div class="hero-waves" aria-hidden="true"></div><div><p class="eyebrow">W.A.T.A. Tech Hub</p><h1>Apps &amp; instructions</h1><p>Preparing your available tools.</p></div></section><section class="loading-launcher" aria-label="Loading your apps"><div class="section-head"><div><h2>Apps</h2><p>Checking your access.</p></div><div class="loader" aria-hidden="true"><span></span><span></span><span></span></div></div><div class="skeleton-grid">${Array.from({ length: 6 }, () => `<span class="skeleton-app"><i></i><b></b></span>`).join("")}</div></section>`;
 }
 
 function errorView() {
@@ -146,7 +158,7 @@ function openMenu(open) {
 function setAppearance(kind, value) {
   document.documentElement.dataset[kind] = value;
   localStorage.setItem(kind === "theme" ? "wata-theme" : "wata-accent", value);
-  document.querySelector('meta[name="theme-color"]').content = document.documentElement.dataset.theme === "dark" ? "#070c16" : "#eef3f9";
+  document.querySelector('meta[name="theme-color"]').content = document.documentElement.dataset.theme === "dark" ? "#08101c" : "#eef3f9";
   document.querySelectorAll(`[data-${kind}-choice]`).forEach(button => button.classList.toggle("active", button.dataset[`${kind}Choice`] === value));
 }
 
@@ -180,6 +192,16 @@ document.addEventListener("click", async event => {
   if (event.target.closest("#closeMenu") || event.target === scrim) return openMenu(false);
   const theme = event.target.closest("[data-theme-choice]"); if (theme) return setAppearance("theme", theme.dataset.themeChoice);
   const accent = event.target.closest("[data-accent-choice]"); if (accent) return setAppearance("accent", accent.dataset.accentChoice);
+  const tagChoice = event.target.closest("[data-tag-value]"); if (tagChoice) {
+    const picker = tagChoice.closest("[data-tag-picker]");
+    const input = picker.querySelector('input[type="hidden"]');
+    const selected = input.value.split(",").map(value => value.trim()).filter(Boolean);
+    const value = tagChoice.dataset.tagValue;
+    const next = selected.includes(value) ? selected.filter(item => item !== value) : [...selected, value];
+    input.value = next.join(","); tagChoice.classList.toggle("selected", next.includes(value)); tagChoice.setAttribute("aria-checked", String(next.includes(value)));
+    picker.querySelector("[data-tag-summary]").textContent = next.length ? next.join(" · ") : "Tap to choose";
+    return;
+  }
   if (event.target.closest("#instructionsButton")) { const list = document.querySelector("#menuGuideList"); list.hidden = !list.hidden; return; }
   const copy = event.target.closest("[data-copy-key]"); if (copy) { try { await navigator.clipboard.writeText(WATA_REFERENCE_COPY[copy.dataset.copyKey]); copy.textContent = "Copied"; setTimeout(() => { copy.textContent = "Copy again"; }, 1200); } catch { copy.textContent = "Copy unavailable"; } return; }
   const appTarget = event.target.closest("[data-app-url]"); if (appTarget) { window.open(appTarget.dataset.appUrl, "_blank", "noopener,noreferrer"); return; }
