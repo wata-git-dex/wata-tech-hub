@@ -109,6 +109,16 @@ body{background:radial-gradient(circle at 76% 0,color-mix(in srgb,var(--accent-1
 /* Continuous contour field and unframed quick-link icons. */
 .sidebar nav>a>span,.sidebar nav>.disabled>span{width:30px;height:30px;flex-basis:30px;padding:0;background:transparent;border:0;border-radius:9px;box-shadow:none}
 .sidebar nav img{border-radius:8px}
-.topbar::before{inset:0;background-image:url("assets/topography.svg");background-repeat:no-repeat;background-position:center 44%;background-size:100% 560%;opacity:.22;transform:none}
-.hero-waves{inset:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%;transform:none}
-@media(max-width:700px){.topbar::before{background-position:center 45%;background-size:170% 520%;opacity:.24}.hero-waves{background-position:center;background-size:145% 100%}}
+.topbar::before{inset:0;background-image:url("assets/topography-map.jpg");background-repeat:no-repeat;background-position:center 42%;background-size:100% auto;opacity:.18;transform:none}
+.hero{background-image:linear-gradient(112deg,rgba(27,205,232,.68),rgba(38,132,224,.68) 48%,rgba(48,78,211,.8)),url("assets/topography-map.jpg");background-position:center;background-size:cover}
+.hero-waves{display:none}
+@media(max-width:700px){
+  .topbar::before{background-position:center 42%;background-size:175% auto;opacity:.2}
+  .app-grid{gap:22px 10px}
+  .app-card{display:grid;grid-template-rows:72px 17px minmax(34px,auto);align-content:start;justify-items:center;min-height:131px;padding:4px;border-radius:18px}
+  .card-top{display:contents}
+  .card-icon{grid-row:1;align-self:start;justify-self:center}
+  .status{grid-row:2;align-self:center;justify-self:center}
+  .app-card h3{grid-row:3;align-self:start;justify-self:stretch;display:block;min-height:0;margin:5px 0 0;padding:0 2px;text-align:center}
+  .development{margin-top:58px}
+}

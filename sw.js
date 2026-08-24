@@ -1,11 +1,11 @@
-const VERSION = "wata-tech-hub-v17";
+const VERSION = "wata-tech-hub-v18";
 const APP_SHELL = [
-  "/", "/index.html", "/styles.css?v=33", "/app.js?v=33", "/data-adapter.js", "/theme-init.js",
+  "/", "/index.html", "/styles.css?v=34", "/app.js?v=33", "/data-adapter.js", "/theme-init.js",
   "/assets/tech-hub/brand-logo-v3.png",
   "/manifest.webmanifest", "/assets/tech-hub/icon-32-v5.png",
   "/assets/tech-hub/apple-touch-icon-v5.png", "/assets/tech-hub/icon-192-v5.png",
   "/assets/tech-hub/icon-512-v5.png", "/assets/tech-hub/icon-512-maskable-v5.png",
-  "/assets/wata-logo.png", "/assets/topography.svg",
+  "/assets/wata-logo.png", "/assets/topography.svg", "/assets/topography-map.jpg",
   "/assets/apps/watadex/icon-192.png", "/assets/apps/registry/icon-192.png",
   "/assets/apps/community/icon.png", "/assets/apps/impact-map/icon.svg",
   "/assets/apps/website/icon.svg", "/assets/apps/field-app/icon.png",
