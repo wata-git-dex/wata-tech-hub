@@ -8,6 +8,12 @@ const WATA_REFERENCE_COPY = Object.freeze({
   taxId: "99-2348652",
   boilerplate: "Water Access To All (W.A.T.A.) is a registered 501(c)(3) nonprofit bringing clean, safe drinking water to communities without reliable access through filtration, training, and locally led implementation. W.A.T.A. works alongside local leaders and partners to build lasting capacity so communities can carry the work forward."
 });
+const WATA_GOALS = Object.freeze([
+  "Expand durable access to clean, safe drinking water.",
+  "Install filtration in ways that communities can operate and carry forward.",
+  "Build local capacity, leadership, and practical knowledge alongside each installation.",
+  "Support youth leaders and community partners without creating long-term dependence on outside organizations."
+]);
 const PROFILE_CHOICES = Object.freeze({
   skills: ["Water filtration", "Water systems", "Field operations", "Community organizing", "Project management", "Grant writing", "Fundraising", "Photography", "Videography", "Design", "Writing & editing", "Storytelling", "Research & evaluation", "Data & mapping", "Technology", "Engineering", "Training & facilitation", "Teaching", "Translation & interpretation", "Music & performance", "First aid", "Logistics", "Partnerships", "Social media"],
   interests: ["Clean water", "Community service", "Conservation", "Public health", "Education", "Travel", "Surfing & ocean sports", "Music", "Photography", "Storytelling", "Technology", "Climate action", "Youth leadership", "Sports & fitness", "Art & design", "Hiking & outdoors", "Languages & culture", "Volunteering"]
@@ -130,9 +136,18 @@ function profileView() {
     </form>`;
 }
 
+function missionView() {
+  const cards = [["Mission", "mission"], ["Vision", "vision"], ["501(c)(3) Federal Tax ID (EIN)", "taxId"]];
+  return `<header class="view-head"><p class="eyebrow">W.A.T.A. reference</p><h1>Mission, vision &amp; goals</h1><p>The clearest version of what W.A.T.A. does, the future we are working toward, and the information most often needed for grants and partner materials.</p></header><div class="about-banner"><strong>Ready to use</strong><span>Copy any approved section directly from the Toolkit.</span></div><div class="copy-grid">${cards.map(([label, key]) => `<article class="copy-card ${key === "taxId" ? "ein-card" : ""}"><span>${label}</span><p>${escapeHtml(WATA_REFERENCE_COPY[key])}</p><button type="button" data-copy-key="${key}">Copy ${key === "taxId" ? "tax ID" : label.toLowerCase()}</button></article>`).join("")}<article class="copy-card wide goals-card"><span>Goals</span><ol>${WATA_GOALS.map(goal => `<li>${escapeHtml(goal)}</li>`).join("")}</ol></article></div>`;
+}
+
 function aboutView() {
-  const cards = [["Mission", "mission"], ["Vision", "vision"], ["501(c)(3) Federal Tax ID (EIN)", "taxId"], ["Organization boilerplate", "boilerplate"]];
-  return `<header class="view-head"><p class="eyebrow">Reference</p><h1>About W.A.T.A.</h1><p>Copy-ready language for applications, grants, and partner materials.</p></header><div class="about-banner"><strong>Ready to use</strong><span>Approved mission, vision, nonprofit information, and organization boilerplate.</span></div><div class="copy-grid">${cards.map(([label, key]) => `<article class="copy-card ${key === "boilerplate" ? "wide" : ""}"><span>${label}</span><p>${escapeHtml(WATA_REFERENCE_COPY[key])}</p><button type="button" data-copy-key="${key}">Copy ${key === "taxId" ? "tax ID" : label.toLowerCase()}</button></article>`).join("")}</div>`;
+  return `<header class="view-head"><p class="eyebrow">Water Access to All</p><h1>About W.A.T.A.</h1><p>A concise introduction to why W.A.T.A. exists and how the work is designed to continue.</p></header><div class="story-grid">
+    <article><span>Why W.A.T.A. exists</span><h2>Clean water should create possibility.</h2><p>W.A.T.A. works with communities that lack reliable access to clean, safe drinking water. The work is not only about delivering filtration—it is about strengthening the people, knowledge, and leadership that keep clean water moving forward.</p></article>
+    <article><span>How W.A.T.A. works</span><h2>Install. Teach. Carry forward.</h2><p>Filtration is paired with training and locally led implementation. Outside partners can bring resources and support, while community leaders build the capacity to operate, adapt, and lead the work themselves.</p></article>
+    <article><span>The role of young leaders</span><h2>Local youth drive lasting change.</h2><p>W.A.T.A.’s vision puts young leaders at the center of the future: supported by partners, connected to useful tools, and never designed to remain dependent on outside organizations.</p></article>
+    <article><span>Your starting point</span><h2>The Toolkit keeps the work connected.</h2><p>This app brings W.A.T.A.’s tools, instructions, profile, organizational language, and future trip information into one place. If this is the only W.A.T.A. app someone receives, it should still help them understand the mission and find what they need.</p></article>
+  </div><article class="copy-card about-boilerplate"><span>Organization boilerplate</span><p>${escapeHtml(WATA_REFERENCE_COPY.boilerplate)}</p><button type="button" data-copy-key="boilerplate">Copy organization boilerplate</button></article>`;
 }
 
 function settingsView() {
@@ -156,7 +171,7 @@ function errorView() {
 function render() {
   if (state.loading && !state.bootstrap) app.innerHTML = loadingView();
   else if (state.error && !state.bootstrap) app.innerHTML = errorView();
-  else app.innerHTML = currentView === "profile" ? profileView() : currentView === "about" ? aboutView() : currentView === "settings" ? settingsView() : homeView();
+  else app.innerHTML = currentView === "profile" ? profileView() : currentView === "mission" ? missionView() : currentView === "about" ? aboutView() : currentView === "settings" ? settingsView() : homeView();
   syncNavigation();
 }
 

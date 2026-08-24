@@ -14,7 +14,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/assets/tech-hub/icon-32-v5.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/assets/tech-hub/apple-touch-icon-v5.png" sizes="180x180">
-  <link rel="stylesheet" href="styles.css?v=35">
+  <link rel="stylesheet" href="styles.css?v=36">
   <title>W.A.T.A. Toolkit</title>
 </head>
 <body>
@@ -31,10 +31,11 @@
     <main>
       <header class="topbar">
         <button class="home-mark" type="button" data-view="home" aria-label="Return to apps"><img src="/assets/tech-hub/brand-logo-v3.png" alt="" width="42" height="42"></button>
+        <div class="topbar-title" aria-label="Water Access to All"><strong>Water Access to All</strong><small>W.A.T.A. Toolkit</small></div>
         <button class="menu-button" id="menuButton" type="button" aria-label="Open W.A.T.A. menu" aria-expanded="false" aria-controls="menuDrawer"><span></span><span></span><span></span></button>
       </header>
       <section id="app" class="content" aria-live="polite"></section>
-      <footer class="site-footer"><img src="/assets/wata-logo.png" alt="" width="26" height="26"><span>Water Access to All</span><small>Toolkit v1.1.6</small></footer>
+      <footer class="site-footer"><img src="/assets/wata-logo.png" alt="" width="26" height="26"><span>Water Access to All</span><small>Toolkit v1.1.7</small></footer>
     </main>
   </div>
   <div class="drawer-scrim" id="drawerScrim" hidden></div>
@@ -42,10 +43,11 @@
     <div class="drawer-head"><div id="menuProfile" class="menu-profile"><span class="avatar">··</span><span><strong>Loading</strong><small>Checking access</small></span></div><button id="closeMenu" class="close-button" type="button" aria-label="Close menu">×</button></div>
     <nav class="drawer-nav">
       <button type="button" data-view="home"><span>Apps</span><small>Your available tools</small></button>
+      <button type="button" data-view="mission"><span>Mission, Vision &amp; Goals</span><small>What W.A.T.A. is working toward</small></button>
+      <button type="button" data-view="about"><span>About W.A.T.A.</span><small>Why we exist and how the work continues</small></button>
       <button type="button" data-view="profile"><span>Profile</span><small>Your shared W.A.T.A. details</small></button>
       <button type="button" id="instructionsButton"><span>Instructions</span><small>PDF and PNG guides</small></button>
       <div class="guide-list" id="menuGuideList" hidden></div>
-      <button type="button" data-view="about"><span>About W.A.T.A.</span><small>Mission, vision, EIN, and boilerplate</small></button>
       <button type="button" data-view="settings"><span>Settings &amp; help</span><small>Access, offline use, and support</small></button>
     </nav>
     <div class="appearance">
@@ -54,6 +56,6 @@
       <div class="accent-choice" role="group" aria-label="Accent color"><button type="button" data-accent-choice="cyan" aria-label="Cyan accent"></button><button type="button" data-accent-choice="pink" aria-label="Pink accent"></button><button type="button" data-accent-choice="blue" aria-label="Blue accent"></button><button type="button" data-accent-choice="neutral" aria-label="Neutral accent"></button></div>
     </div>
   </aside>
-  <script type="module" src="app.js?v=34"></script>
+  <script type="module" src="app.js?v=35"></script>
 </body>
 </html>
