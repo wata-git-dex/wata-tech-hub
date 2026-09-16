@@ -6,8 +6,8 @@ The 2026-09-09 navigation cohesion pass follows `../../docs/WATA-NAVIGATION-SYST
 
 The 2026-09-11 safe-area candidate uses `viewport-fit=cover` plus one four-edge inset contract for the sticky header, landscape sidebar, content/footer edges, and full-height drawer. Synthetic portrait/landscape browser acceptance is recorded in `../../docs/WATA-SAFE-AREA-RELEASE-GATE.md`; physical iPhone Safari and installed-PWA acceptance remain pending and must not be inferred from CSS checks.
 
-- Production: `https://toolkit.cleanwata.org`
-- Compatibility addresses: `https://app.cleanwata.org`, `https://wata.cleanwata.org`
+- Production: `https://app.cleanwata.org`
+- Compatibility addresses: `https://toolkit.cleanwata.org`, `https://wata.cleanwata.org`
 - Preview: `https://wata-tech-hub.pages.dev`
 - Cloudflare project: `wata-tech-hub`
 - Access directory: Airtable `🔐 App Access`
@@ -35,7 +35,7 @@ The W.A.T.A. platform owns one reusable shared-profile component; Toolkit must h
 
 This repository owns only the Toolkit frontend, PWA, icons, instructions, and gateway. `/api/` uses a service binding named `PORTAL` to the proven authorization/data Worker, `wata-partner-portals`. Registry frontend code and Registry PWA assets are not deployed from this repository.
 
-Cloudflare Access protects the production hostnames with the existing `Airtable App Access directory` policy. The Access application includes canonical `toolkit.cleanwata.org`, compatibility addresses `app.cleanwata.org` and `wata.cleanwata.org`, and the current `wata-tech-hub.pages.dev` project destination. Normal browser visits to `app.cleanwata.org` move to the canonical Toolkit address; an existing standalone PWA remains available on the old origin until it is reinstalled.
+Cloudflare Access protects the production hostnames with the existing `Airtable App Access directory` policy. The Access application includes canonical `app.cleanwata.org`, compatibility addresses `toolkit.cleanwata.org` and `wata.cleanwata.org`, and the current `wata-tech-hub.pages.dev` project destination. The former `wata.cleanwata.org` address redirects to the canonical app address. The Toolkit hostname remains available so existing installed PWAs and bookmarks continue to work while users transition to the Wonderful World entry point.
 
 The Toolkit shows one `Filter Registry` app. `Partner Portal` is the partner-scoped experience inside that Registry, not a separate app or deployment.
 
