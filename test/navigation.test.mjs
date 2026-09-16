@@ -56,7 +56,7 @@ test("My Filters is presented as a person-scoped view rather than Registry acces
   assert.match(app, /does not provide partner-wide Filter Registry access/);
 });
 
-test("Toolkit hosts the immutable shared profile component behind the platform adapter", async () => {
+test("Wonderful World hosts the immutable shared profile component behind the platform adapter", async () => {
   const app = await source("app.js");
   const build = await source("scripts/build.sh");
   assert.match(app, /mountWataProfile/);
@@ -64,7 +64,7 @@ test("Toolkit hosts the immutable shared profile component behind the platform a
   assert.match(app, /integration\?\.profile\?\.writable/);
   assert.match(app, /completeOnboarding: state\.profileMode === "onboarding"/);
   assert.match(app, /localStorage\.removeItem\(SNAPSHOT_KEY\)/);
-  assert.match(build, /platform\/shared-profile\/releases\/1\.1\.0\/wata-profile\.js/);
+  assert.match(build, /vendor\/shared-profile\/1\.1\.0\/wata-profile\.js/);
   assert.doesNotMatch(app, /community\.cleanwata\.org\/#profile/);
 });
 

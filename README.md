@@ -27,6 +27,8 @@ The static site and Pages advanced-mode Worker are written to `dist/`. Cloudflar
 
 The branded entry screen deliberately continues to the existing secure verification flow. It does not copy Community's origin-local Supabase session or pretend the future server-managed cross-domain session is already deployed. Google and W.A.T.A. credentials may appear as separate methods only when the platform session service can bind both to the same canonical identity.
 
+The independent build vendors the immutable shared-profile component at `vendor/shared-profile/1.1.0/wata-profile.js`. It is an exact copy of the platform release (SHA-256 `552b5fbe9bf82ff1215e5050f07a5038b55c4c8348d415b593b5909c31ad39b2`), so GitHub and Cloudflare builds do not depend on an untracked parent workspace while the platform release remains the maintained source.
+
 `filters` is the **My Filters** relationship view, not a Registry grant. The adapter retains only stable filter identity, location summary, status, and verified relationship type. Full Filter Registry access still requires its own app grant and operational scopes.
 
 The W.A.T.A. platform owns one reusable shared-profile component; Toolkit must host that component in place and must not create a Toolkit-only profile store or require a visit to Community. The current read-only profile surface remains an integration gap until the coordinated component adapter is accepted. Follow `../../docs/WATA-SHARED-PROFILE-SYSTEM.md` before changing that boundary.
