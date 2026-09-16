@@ -39,6 +39,13 @@ const languageMenuButton = document.querySelector("#languageMenuButton");
 const languageMenu = document.querySelector("#languageMenu");
 let drawerReturnFocus = null;
 let profileMount = null;
+let profileTab = "about";
+let profileTravelDraft = [];
+let profileTravelOwner = "";
+let profileCountryQuery = "";
+let profileGeo = null;
+let profileMapError = "";
+let profileTravelStatus = "";
 document.documentElement.lang = currentLanguage;
 document.title = currentLanguage === "es" ? "W.A.T.A. Mundo Maravilloso" : "W.A.T.A. Wonderful World";
 
@@ -239,6 +246,68 @@ function avatarMarkup(profile, className, fallback) {
   return `<span class="${className}">${safe ? `<img src="${escapeHtml(url)}" alt="">` : escapeHtml(fallback)}</span>`;
 }
 
+function countryName(code) {
+  try { return new Intl.DisplayNames([languageLocale(currentLanguage)], { type: "region" }).of(code) || code; }
+  catch { return code; }
+}
+
+function profileFeatureCode(feature) {
+  const properties = feature?.properties || {};
+  return properties.ISO_A2_EH && properties.ISO_A2_EH !== "-99" ? properties.ISO_A2_EH : properties.ISO_A2;
+}
+
+function profileGeometryPath(geometry) {
+  if (!geometry) return "";
+  const polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.type === "MultiPolygon" ? geometry.coordinates : [];
+  return polygons.map(polygon => polygon.map(ring => {
+    let previousX = null;
+    return ring.map(([longitude, latitude], index) => {
+      const x = ((longitude + 180) / 360) * 960;
+      const y = ((90 - latitude) / 180) * 500;
+      const jump = previousX !== null && Math.abs(x - previousX) > 480;
+      previousX = x;
+      return `${index === 0 || jump ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
+    }).join(" ") + " Z";
+  }).join(" ")).join(" ");
+}
+
+function profileMapMarkup() {
+  if (profileMapError) return `<div class="profile-map-loading">Map unavailable. The country list still works.</div>`;
+  if (!profileGeo) return `<div class="profile-map-loading">Loading your personal travel map…</div>`;
+  const selected = new Set(profileTravelDraft);
+  const paths = profileGeo.features.map(feature => {
+    const code = profileFeatureCode(feature);
+    const path = profileGeometryPath(feature.geometry);
+    return path ? `<path d="${path}" class="${selected.has(code) ? "selected" : ""}" data-country-code="${escapeHtml(code)}"></path>` : "";
+  }).join("");
+  return `<svg viewBox="0 0 960 500" role="img" aria-label="World map highlighting countries in your personal travel history">${paths}</svg>`;
+}
+
+async function loadProfileMap() {
+  if (profileGeo || profileMapError) return;
+  try {
+    const response = await fetch("/assets/profile/countries.geojson", { cache: "force-cache" });
+    if (!response.ok) throw new Error(`Map request failed (${response.status})`);
+    profileGeo = await response.json();
+  } catch (error) { profileMapError = error.message; }
+  if (currentView === "profile" && profileTab === "travel") render();
+}
+
+function profileCountryResults() {
+  const query = profileCountryQuery.trim().toLocaleLowerCase(languageLocale(currentLanguage));
+  return COUNTRY_CODES.filter(code => !query || countryName(code).toLocaleLowerCase(languageLocale(currentLanguage)).includes(query)).slice(0, query ? 14 : 10).map(code => `<button type="button" class="profile-country-result" data-profile-country="${code}" aria-pressed="${profileTravelDraft.includes(code)}">${flagEmoji(code)} ${escapeHtml(countryName(code))}</button>`).join("");
+}
+
+function profileTravelPanel(profile) {
+  const chips = profileTravelDraft.map(code => `<span>${flagEmoji(code)} ${escapeHtml(countryName(code))}<button type="button" data-profile-country="${code}" aria-label="Remove ${escapeHtml(countryName(code))}">×</button></span>`).join("");
+  return `<article class="profile-travel-card"><div class="profile-panel-heading"><div><p class="eyebrow">Personal travel</p><h2>Countries visited <span>${profileTravelDraft.length} selected</span></h2><p>This is your personal travel history. It is not W.A.T.A.’s Impact Map, verified field activity, or live location tracking.</p></div></div><label class="profile-country-search"><span>Find a country</span><input type="search" id="profileCountrySearch" value="${escapeHtml(profileCountryQuery)}" placeholder="Search by country name" autocomplete="off"></label><div class="profile-country-results" id="profileCountryResults">${profileCountryResults()}</div><div class="profile-country-map">${profileMapMarkup()}</div><div class="profile-selected-countries" aria-label="Selected countries">${chips || `<em>No countries added yet.</em>`}</div><label class="profile-privacy-row"><input id="profileShowTravel" type="checkbox" ${profile.show_travel !== false ? "checked" : ""}> Show personal travel to other W.A.T.A. members</label>${profileTravelStatus ? `<p class="profile-travel-status" role="status">${escapeHtml(profileTravelStatus)}</p>` : ""}<div class="profile-travel-actions"><button type="button" class="primary-button" id="saveProfileTravel" ${state.saving ? "disabled" : ""}>${state.saving ? "Saving…" : "Save travel profile"}</button></div></article><article class="profile-adapter-card"><p class="eyebrow">Account-linked trips</p><h2>Project Hub trip history</h2><p>Confirmed trip assignments appear in the Trips area when that account-authorized adapter returns them. Personal travel above never implies W.A.T.A. field work.</p><button type="button" data-view="trips">Open assigned trips</button></article>`;
+}
+
+function profileAboutPanel(profile, skills, interests, writable) {
+  const humanitarian = Array.isArray(profile.humanitarian_interests) ? profile.humanitarian_interests : [];
+  return `<article class="profile-about-card"><p class="eyebrow">About</p><h2>Your W.A.T.A. profile</h2><p>${escapeHtml(display(profile.about || profile.bio, "Add a short introduction so other W.A.T.A. members understand who you are and what you care about."))}</p></article><div class="profile-detail-grid"><article><h2>Professional skills</h2><p class="profile-helper">Things you can bring to W.A.T.A. work in the field or from home.</p><div class="profile-pills">${skills.length ? skills.map(item => `<span>${escapeHtml(item)}</span>`).join("") : `<em>No skills added yet</em>`}</div></article><article><h2>Hobbies &amp; personal interests</h2><p class="profile-helper">Things you genuinely enjoy in life.</p><div class="profile-pills interests">${interests.length ? interests.map(item => `<span>${escapeHtml(item)}</span>`).join("") : `<em>No interests added yet</em>`}</div></article><article class="wide"><h2>Humanitarian interests</h2><p class="profile-helper">Causes and humanitarian work you care about.</p><div class="profile-pills humanitarian">${humanitarian.length ? humanitarian.map(item => `<span>${escapeHtml(item)}</span>`).join("") : `<em>No humanitarian interests added yet</em>`}</div></article></div>${writable ? `<section class="profile-editor-section"><div class="section-head"><div><h2>${state.profileMode === "onboarding" ? "Create your profile" : "Edit profile"}</h2><p>Update the same profile used by participating W.A.T.A. apps.</p></div></div><div class="profile-component-card"><div id="sharedProfileHost" aria-live="polite"></div></div></section>` : `<div class="profile-integration-note"><strong>Editing is not connected to this sign-in yet</strong><p>Your verified profile is available to view, but changes cannot be saved from this session.</p></div>`}`;
+}
+
 function profileView() {
   const profile = state.bootstrap.profile;
   const roles = state.bootstrap.roles.map(role => translateText(role.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase()), currentLanguage)).join(" · ") || translateText("Member", currentLanguage);
@@ -247,6 +316,15 @@ function profileView() {
   const interests = Array.isArray(profile.interests) ? profile.interests : [];
   const location = display(profile.current_location || profile.city, "Add your current location");
   const writable = state.bootstrap.integration?.profile?.writable;
+  const ownerKey = profile.id || state.bootstrap.user?.id || "member";
+  if (profileTravelOwner !== ownerKey) { profileTravelOwner = ownerKey; profileTravelDraft = [...(profile.countries_visited || [])]; profileCountryQuery = ""; profileTravelStatus = ""; }
+  const tabs = [["about","About"],["travel","Travel"],["learning","Learning"],["goals","Goals"],["contact","Contact"],["settings","Settings"]];
+  const panel = profileTab === "travel" ? profileTravelPanel(profile)
+    : profileTab === "learning" ? `<div class="profile-adapter-card"><p class="eyebrow">Learning</p><h2>Training &amp; certificates</h2><p>Your authorized learning records live in the Training section; no completion is inferred from app access.</p><button type="button" data-view="training">Open training</button></div>`
+    : profileTab === "goals" ? `<div class="profile-adapter-card"><p class="eyebrow">Goals</p><h2>Personal goals &amp; travel bucket list</h2><p>${profile.goals?.length ? `${profile.goals.length} saved goal${profile.goals.length === 1 ? "" : "s"}.` : "No goals added yet."} Goal editing is joining this shared profile surface next.</p></div>`
+    : profileTab === "contact" ? `<div class="profile-detail-grid"><article><h2>Email</h2><p>${escapeHtml(profile.contact_email || "Not added")}</p><small>${profile.show_email ? "Visible to approved members" : "Private"}</small></article><article><h2>WhatsApp</h2><p>${escapeHtml(profile.whatsapp_number || "Not added")}</p><small>${profile.show_whatsapp ? "Visible to approved members" : "Private"}</small></article></div>`
+    : profileTab === "settings" ? `<div class="profile-adapter-card"><p class="eyebrow">Suite preferences</p><h2>Appearance &amp; language</h2><p>Your shared profile records suite preferences while this app’s working controls remain available in the main menu.</p><button type="button" data-view="settings">Open settings &amp; help</button></div>`
+    : profileAboutPanel(profile, skills, interests, writable);
   return `<section class="member-profile-shell">
     <header class="member-profile-hero">
       <div class="member-profile-contours" aria-hidden="true"></div>
@@ -254,12 +332,8 @@ function profileView() {
       <span class="profile-sync-badge">${writable ? "Shared across W.A.T.A." : "Profile connection pending"}</span>
     </header>
     <div class="member-profile-meta"><div><span>Nationality</span><strong>${escapeHtml(display(profile.country, "Add nationality"))}</strong></div><div><span>Current location</span><strong>${escapeHtml(location)}</strong></div><div><span>Profile status</span><strong>${isWataProfileComplete(profile) ? "Profile complete" : "Setup incomplete"}</strong></div></div>
-    <nav class="member-profile-tabs" aria-label="Profile sections"><span class="active">About</span><button type="button" data-view="trips">Trips</button><button type="button" data-view="training">Learning</button><button type="button" data-view="settings">Settings</button></nav>
-    <div class="member-profile-content">
-      <article class="profile-about-card"><p class="eyebrow">About</p><h2>Your W.A.T.A. profile</h2><p>${escapeHtml(display(profile.bio, "Add a short introduction so other W.A.T.A. members understand who you are and what you care about."))}</p></article>
-      <div class="profile-detail-grid"><article><h2>Professional skills</h2><p class="profile-helper">Things you can bring to W.A.T.A. work in the field or from home.</p><div class="profile-pills">${skills.length ? skills.map(item => `<span>${escapeHtml(item)}</span>`).join("") : `<em>No skills added yet</em>`}</div></article><article><h2>Hobbies &amp; personal interests</h2><p class="profile-helper">Things you genuinely enjoy in life.</p><div class="profile-pills interests">${interests.length ? interests.map(item => `<span>${escapeHtml(item)}</span>`).join("") : `<em>No interests added yet</em>`}</div></article></div>
-      ${writable ? `<section class="profile-editor-section"><div class="section-head"><div><h2>${state.profileMode === "onboarding" ? "Create your profile" : "Edit profile"}</h2><p>Update the same profile used by participating W.A.T.A. apps.</p></div></div><div class="profile-component-card"><div id="sharedProfileHost" aria-live="polite"></div></div></section>` : `<div class="profile-integration-note"><strong>Editing is not connected to this sign-in yet</strong><p>This page is showing the verified profile information currently returned for your account. The shared Supabase profile editor cannot safely save through the older Cloudflare/Airtable session, so no fake local profile form is being shown.</p></div>`}
-    </div>
+    <nav class="member-profile-tabs" aria-label="Profile sections" role="tablist">${tabs.map(([id,label]) => `<button type="button" data-profile-tab="${id}" role="tab" aria-selected="${profileTab === id}" class="${profileTab === id ? "active" : ""}">${label}</button>`).join("")}</nav>
+    <div class="member-profile-content">${panel}</div>
   </section>`;
 }
 
@@ -366,7 +440,11 @@ function errorView() {
   const unauthorized = state.error?.status === 401 || state.error?.status === 403;
   const title = unauthorized ? "Welcome back." : "Wonderful World could not connect";
   const message = unauthorized ? "One W.A.T.A. identity connects your shared profile to every tool and record you are authorized to use." : state.error?.message || "Try again when you have a connection.";
-  return `<section class="entry-shell ${unauthorized ? "auth-entry" : "connection-entry"}"><div class="entry-visual"><div class="entry-brand"><img src="/assets/tech-hub/icon-192-v6.png" alt=""><span><small>W.A.T.A.</small><strong>Wonderful World</strong></span></div><div class="entry-story"><p class="eyebrow">Your W.A.T.A. starting point</p><h2>One profile.<br>Every approved tool.</h2><p>Create and maintain your shared profile, open your personal toolkit, follow assigned work, and stay connected to the filters and communities you support.</p><ul><li>One shared W.A.T.A. profile</li><li>Only the apps approved for you</li><li>Your verified filters, trips, and assignments</li></ul></div><small class="entry-signature">Water Access To All · Wonderful World</small></div><section class="entry-panel"><p class="eyebrow">${unauthorized ? "Water Access To All" : "Connection issue"}</p><h1>${title}</h1><p class="entry-intro">${escapeHtml(message)}</p>${unauthorized ? `<div class="entry-auth-note"><strong>One account, secure access</strong><p>Google or W.A.T.A. credentials will resolve to the same approved identity when the shared session service is connected. Signing in never grants new permissions.</p></div>` : ""}<button class="primary-button entry-action" type="button" id="retryButton">${unauthorized ? "Continue to secure sign-in" : "Try again"}</button><small class="entry-help">${unauthorized ? "The current verification screen will show the sign-in method available to your approved account." : "Your last verified data remains protected while the connection is unavailable."}</small></section></section>`;
+  return `<section class="entry-shell ${unauthorized ? "auth-entry" : "connection-entry"}">
+    <div class="entry-visual"><div class="entry-brand"><img src="/assets/tech-hub/icon-192-v6.png" alt=""><span><small>W.A.T.A.</small><strong>Wonderful World</strong></span></div><div class="entry-story"><p class="eyebrow">Your W.A.T.A. starting point</p><h2>One profile.<br>Every approved tool.</h2><p>Create your shared W.A.T.A. profile, open your personal toolkit, follow assigned work, and stay connected to the filters and communities you support.</p><ul><li>Build one profile used across W.A.T.A.</li><li>Open only the tools approved for you</li><li>Keep personal travel, learning, goals, and field work together</li></ul></div><small class="entry-signature">Water Access To All · Wonderful World</small></div>
+    <section class="entry-panel"><p class="eyebrow">${unauthorized ? "Water Access To All" : "Connection issue"}</p><h1>${title}</h1><p class="entry-intro">${escapeHtml(message)}</p>
+      ${unauthorized ? `<button class="primary-button entry-google" type="button" id="googleSignInButton">Sign in with Google</button><div class="entry-auth-note"><strong>Signing in verifies your identity.</strong><p>It does not grant access. You will only see W.A.T.A. apps, records, and spaces approved for your account.</p></div><div class="entry-divider"><span>or</span></div><form id="wataSignInForm" class="entry-form"><p class="eyebrow">W.A.T.A. account</p><label><span>Approved email or phone</span><input name="identifier" autocomplete="username" placeholder="name@example.org or +502…" required></label><label><span>Password</span><input name="password" type="password" autocomplete="current-password" required></label><p id="authFormError" class="entry-form-error" hidden></p><button class="secondary-button" type="submit">Sign in with W.A.T.A.</button></form><small class="entry-help">No SMS is sent. Contact the W.A.T.A. administrator if you need access or a reset.</small>` : `<button class="primary-button entry-action" type="button" id="retryButton">Try again</button><small class="entry-help">Your last verified data remains protected while the connection is unavailable.</small>`}
+    </section></section>`;
 }
 
 function render() {
@@ -558,11 +636,63 @@ document.addEventListener("click", async event => {
   if (event.target.closest("#signOutButton")) { openMenu(false); profileMount?.destroy(); localStorage.removeItem(SNAPSHOT_KEY); state.bootstrap = null; return dataAdapter.signOut(); }
   const copy = event.target.closest("[data-copy-key]"); if (copy) { try { await navigator.clipboard.writeText(translateText(WATA_REFERENCE_COPY[copy.dataset.copyKey], currentLanguage)); copy.textContent = translateText("Copied", currentLanguage); setTimeout(() => { copy.textContent = translateText("Copy again", currentLanguage); }, 1200); } catch { copy.textContent = translateText("Copy unavailable", currentLanguage); } return; }
   const appTarget = event.target.closest("[data-app-url]"); if (appTarget) { window.open(appTarget.dataset.appUrl, "_blank", "noopener,noreferrer"); return; }
+  const profileTabTarget = event.target.closest("[data-profile-tab]"); if (profileTabTarget) { profileTab = profileTabTarget.dataset.profileTab; profileTravelStatus = ""; if (profileTab === "travel") loadProfileMap(); render(); return; }
+  const profileCountry = event.target.closest("[data-profile-country]"); if (profileCountry) { const code = profileCountry.dataset.profileCountry; profileTravelDraft = profileTravelDraft.includes(code) ? profileTravelDraft.filter(item => item !== code) : [...profileTravelDraft, code].sort((a,b) => countryName(a).localeCompare(countryName(b), languageLocale(currentLanguage))); profileTravelStatus = "Unsaved travel changes."; render(); return; }
+  if (event.target.closest("#saveProfileTravel")) {
+    const profile = state.bootstrap.profile;
+    state.saving = true; profileTravelStatus = "Saving your personal travel history…"; render();
+    try {
+      const result = await dataAdapter.updateProfile(state.bootstrap, {
+        name: profile.display_name || profile.name, country: profile.country, current_location: profile.current_location,
+        skills: profile.skills || [], interests: profile.interests || [], about: profile.about || profile.bio || null,
+        humanitarian_interests: profile.humanitarian_interests || [], contact_email: profile.contact_email || null,
+        whatsapp_number: profile.whatsapp_number || null, show_email: Boolean(profile.show_email), show_whatsapp: Boolean(profile.show_whatsapp),
+        show_interests: profile.show_interests !== false, show_humanitarian_interests: profile.show_humanitarian_interests !== false,
+        show_travel: document.querySelector("#profileShowTravel")?.checked !== false, show_goals: profile.show_goals !== false,
+        suite_theme: profile.suite_theme || "dark", suite_accent: profile.suite_accent || "cyan", suite_language: profile.suite_language || "en",
+        countries_visited: profileTravelDraft, goals: profile.goals || []
+      });
+      state.bootstrap.profile = { ...profile, ...result.profile, countries_visited: [...profileTravelDraft] };
+      profileTravelStatus = "Travel profile saved across W.A.T.A.";
+      localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ savedAt: Date.now(), bootstrap: state.bootstrap }));
+    } catch (error) { profileTravelStatus = error.message || "Travel profile could not be saved."; }
+    finally { state.saving = false; render(); }
+    return;
+  }
   const view = event.target.closest("[data-view]"); if (view) { currentView = view.dataset.view; state.profileMode = view.dataset.profileMode || "edit"; history.replaceState(null, "", `#${currentView}`); openMenu(false); render(); scrollTo({ top: 0, behavior: "smooth" }); return; }
+  if (event.target.closest("#googleSignInButton")) {
+    try { return dataAdapter.signIn("google"); }
+    catch (error) { const output = document.querySelector("#authFormError"); if (output) { output.hidden = false; output.textContent = error.message; } return; }
+  }
   if (event.target.closest("#retryButton")) { if (state.error?.status === 401 || state.error?.status === 403) return dataAdapter.signIn(); return loadBootstrap(); }
 });
 
+document.addEventListener("submit", async event => {
+  if (!event.target.matches("#wataSignInForm")) return;
+  event.preventDefault();
+  const form = event.target;
+  const output = form.querySelector("#authFormError");
+  const button = form.querySelector('button[type="submit"]');
+  const values = new FormData(form);
+  button.disabled = true;
+  output.hidden = true;
+  try {
+    await dataAdapter.signIn("wata", { identifier: values.get("identifier"), password: values.get("password") });
+    await loadBootstrap();
+  } catch (error) {
+    output.textContent = error.message || "Sign-in failed.";
+    output.hidden = false;
+  } finally { button.disabled = false; }
+});
+
 document.addEventListener("keydown", event => { if (event.key === "Enter" && event.target.matches("[data-tag-input]")) { event.preventDefault(); addCustomTag(event.target); return; } if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-app-url]")) { event.preventDefault(); event.target.click(); } if (event.key === "Escape") { closeLanguageMenu(); openMenu(false); } });
+
+document.addEventListener("input", event => {
+  if (!event.target.matches("#profileCountrySearch")) return;
+  profileCountryQuery = event.target.value;
+  const results = document.querySelector("#profileCountryResults");
+  if (results) results.innerHTML = profileCountryResults();
+});
 
 addEventListener("online", () => loadBootstrap({ background: Boolean(state.bootstrap) }));
 addEventListener("offline", () => { state.offlineSnapshot = Boolean(state.bootstrap); updateConnection(); render(); });

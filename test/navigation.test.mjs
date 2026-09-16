@@ -27,7 +27,7 @@ test("drawer makes the shared profile and personal work the primary navigation",
   assert.match(html, /id="appearancePanel" hidden/);
   assert.match(html, /id="drawerLanguagePanel"[\s\S]*hidden/);
   assert.match(html, /id="signOutButton"/);
-  assert.match(html, /<span>W\.A\.T\.A\. Wonderful World<\/span><strong>v1\.4\.0<\/strong>/);
+  assert.match(html, /<span>W\.A\.T\.A\. Wonderful World<\/span><strong>v1\.5\.0<\/strong>/);
   assert.match(app, /dataAdapter\.signOut\(\)/);
   assert.match(app, /syncCurrentDestination/);
   assert.match(app, /drawerReturnFocus = menuButton/);
@@ -36,20 +36,33 @@ test("drawer makes the shared profile and personal work the primary navigation",
 
 test("service worker precaches the revised navigation assets", async () => {
   const worker = await source("sw.js");
-  assert.match(worker, /wata-wonderful-world-v32-profile-command-center/);
-  assert.match(worker, /styles\.css\?v=46/);
-  assert.match(worker, /app\.js\?v=41/);
+  assert.match(worker, /wata-wonderful-world-v33-shared-profile-travel/);
+  assert.match(worker, /styles\.css\?v=47/);
+  assert.match(worker, /app\.js\?v=42/);
   assert.match(worker, /lib\/wata-profile\.js\?v=1\.1\.0/);
 });
 
-test("Wonderful World entry remains honest about the existing secure sign-in boundary", async () => {
+test("Wonderful World owns the branded shared-identity sign-in surface", async () => {
   const app = await source("app.js");
+  const adapter = await source("data-adapter.js");
   const html = await source("index.html");
   assert.match(html, /<title>W\.A\.T\.A\. Wonderful World<\/title>/);
   assert.match(app, /One profile\.<br>Every approved tool\./);
-  assert.match(app, /Continue to secure sign-in/);
-  assert.match(app, /Signing in never grants new permissions/);
-  assert.doesNotMatch(app, /signInWithPassword|signInWithOAuth/);
+  assert.match(app, /Sign in with Google/);
+  assert.match(app, /Sign in with W\.A\.T\.A\./);
+  assert.match(app, /Signing in verifies your identity/);
+  assert.match(adapter, /SupabaseAuth/);
+  assert.match(adapter, /\/api\/shared\/me/);
+});
+
+test("shared profile includes the saved personal-travel map", async () => {
+  const app = await source("app.js");
+  const css = await source("styles.css");
+  assert.match(app, /countries\.geojson/);
+  assert.match(app, /countries_visited/);
+  assert.match(app, /This is your personal travel history/);
+  assert.match(app, /data-profile-country/);
+  assert.match(css, /\.profile-country-map path\.selected/);
 });
 
 test("My Filters is presented as a person-scoped view rather than Registry access", async () => {

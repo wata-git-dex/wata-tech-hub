@@ -1,3 +1,9 @@
+import { SupabaseAuth } from "./auth.js";
+import { WATA_CONFIG } from "./config.js";
+
+const auth = new SupabaseAuth(WATA_CONFIG);
+let callbackConsumed = false;
+
 const APP_CATALOG = Object.freeze({
   watadex: { app_key: "watadex", name: "WATAdex", description: "Explore W.A.T.A. water knowledge, WATAMON, and field resources.", icon_path: "/assets/apps/watadex/icon-192.png", status: "ready", access_level: "public" },
   partner_portal: { app_key: "filter_registry", name: "Filter Registry", description: "Review filters, follow-ups, impact, and issues within your approved program scope.", url: "https://registry.cleanwata.org/", icon_path: "/assets/apps/registry/icon-192.png", status: "ready", lifecycle_status: "beta", development_status: "active", version: "1.3.0" },
@@ -48,16 +54,27 @@ function normalizeProfile(body, session) {
     country: string(source.country),
     city: string(source.city),
     language: string(source.language),
-    bio: string(source.bio),
+    bio: string(source.about || source.bio),
+    about: string(source.about || source.bio),
     avatar_url: string(source.avatar_url || source.avatarUrl),
     avatar_ref: string(source.avatar_ref || source.avatarRef),
     skills: array(source.skills),
     interests: array(source.interests),
+    humanitarian_interests: array(source.humanitarian_interests),
+    countries_visited: array(source.countries_visited),
+    goals: array(source.goals),
     current_location: string(source.current_location || source.currentLocation || source.city),
     contact_email: string(source.contact_email || source.contactEmail || source.email || session.email || body.user?.email),
     whatsapp_number: string(source.whatsapp_number || source.whatsappNumber || source.phone),
     show_email: source.show_email === true,
     show_whatsapp: source.show_whatsapp === true,
+    show_interests: source.show_interests !== false,
+    show_humanitarian_interests: source.show_humanitarian_interests !== false,
+    show_travel: source.show_travel !== false,
+    show_goals: source.show_goals !== false,
+    suite_theme: string(source.suite_theme || "dark"),
+    suite_accent: string(source.suite_accent || "cyan"),
+    suite_language: string(source.suite_language || "en"),
     role_label: string(source.role_label || source.roleLabel),
     profile_completed_at: source.profile_completed_at || source.profileCompletedAt || null,
     emergency_contact_name: string(source.emergency_contact_name || source.emergencyContactName),
@@ -94,7 +111,9 @@ async function requestJson(url, { method = "GET", body, signal } = {}) {
   if (!url) throw Object.assign(new Error("This shared W.A.T.A. service is not connected yet."), { status: 503 });
   const response = await fetch(url, {
     method,
-    headers: body === undefined ? { accept: "application/json" } : { accept: "application/json", "content-type": "application/json" },
+    headers: body === undefined
+      ? { accept: "application/json", authorization: `Bearer ${auth.accessToken}` }
+      : { accept: "application/json", "content-type": "application/json", authorization: `Bearer ${auth.accessToken}` },
     body: body === undefined ? undefined : JSON.stringify(body),
     cache: "no-store",
     signal
@@ -212,29 +231,49 @@ export function normalizeBootstrap(body = {}) {
 }
 
 export const dataAdapter = {
+  auth,
+
   async getSession() {
-    const bootstrap = await this.getBootstrap();
-    return bootstrap.user?.email ? { user: bootstrap.user } : null;
+    await auth.restore();
+    return auth.accessToken ? { user: { id: auth.subject, email: auth.email } } : null;
   },
 
-  async signIn() {
-    location.assign("/");
+  async signIn(provider = "google", credentials = {}) {
+    if (provider === "google") return auth.signInWithGoogle(`${location.origin}${location.pathname}`);
+    return auth.signInWithWata(credentials.identifier, credentials.password);
   },
 
   async signOut() {
-    location.assign("/cdn-cgi/access/logout");
+    auth.signOut();
+    location.assign("/#profile");
   },
 
   async getBootstrap({ signal } = {}) {
-    const response = await fetch("/api/bootstrap", { headers: { accept: "application/json" }, cache: "no-store", signal });
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw Object.assign(new Error(body.error || "Toolkit unavailable"), { status: response.status });
-    return normalizeBootstrap(body);
+    if (!callbackConsumed) { callbackConsumed = true; auth.consumeOAuthCallback(); }
+    await auth.restore();
+    if (!auth.accessToken) throw Object.assign(new Error("Sign in to open your W.A.T.A. profile and approved tools."), { status: 401 });
+    const response = await fetch("/api/shared/me", { headers: { accept: "application/json", authorization: `Bearer ${auth.accessToken}` }, cache: "no-store", signal });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      if (response.status === 401) auth.signOut();
+      throw Object.assign(new Error(payload.error || "Wonderful World unavailable"), { status: response.status });
+    }
+    const shared = payload.data || payload;
+    return normalizeBootstrap({
+      user: { id: auth.subject, email: auth.email },
+      profile: shared.profile || {},
+      roles: shared.profile?.role_label ? [shared.profile.role_label] : [],
+      apps: shared.toolkit || [],
+      integrations: { profile: { status: "available", load_url: "/api/shared/me", save_url: "/api/shared/profile", avatar_upload_url: "/api/shared/profile/avatar", writable: true, avatar_writable: true } },
+      access: shared.access || [],
+      spaces: shared.spaces || []
+    });
   },
 
   async loadProfile(bootstrap, { signal } = {}) {
     const payload = await requestJson(bootstrap?.integration?.profile?.load_url, { signal });
-    return { profile: normalizeBootstrap({ user: bootstrap.user, profile: payload.profile || payload }).profile };
+    const shared = payload.data || payload;
+    return { profile: normalizeBootstrap({ user: bootstrap.user, profile: shared.profile || shared }).profile };
   },
 
   async updateProfile(bootstrap, patch, { signal, completeOnboarding = false } = {}) {
@@ -248,7 +287,7 @@ export const dataAdapter = {
     if (!integration?.avatar_writable) throw Object.assign(new Error("Profile photo uploads are not connected in the Toolkit yet."), { status: 503 });
     const form = new FormData();
     form.append("file", file, file.name);
-    const response = await fetch(integration.avatar_upload_url, { method: "POST", body: form, cache: "no-store", signal });
+    const response = await fetch(integration.avatar_upload_url, { method: "POST", headers: { authorization: `Bearer ${auth.accessToken}` }, body: form, cache: "no-store", signal });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw Object.assign(new Error(payload.error || "The profile photo could not be uploaded."), { status: response.status });
     return payload.data || payload;

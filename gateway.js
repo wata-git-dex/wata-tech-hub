@@ -1,4 +1,5 @@
 const LEGACY_BACKEND = "https://wata-partner-portals.cleanwataorg.workers.dev";
+const SHARED_PROFILE_BACKEND = "https://wata-community-api.cleanwataorg.workers.dev";
 const CARD_CATALOG = {
   watadex: {
     name: "WATAdex",
@@ -131,6 +132,18 @@ export default {
     if (url.hostname === "wata.cleanwata.org") {
       url.hostname = "app.cleanwata.org";
       return Response.redirect(url.toString(), 308);
+    }
+    if (url.pathname.startsWith("/api/shared/")) {
+      const sharedPath = url.pathname.replace(/^\/api\/shared/, "/v1");
+      const backendUrl = new URL(sharedPath + url.search, SHARED_PROFILE_BACKEND);
+      const headers = new Headers(request.headers);
+      headers.delete("origin");
+      headers.delete("host");
+      const response = await fetch(new Request(backendUrl, { method: request.method, headers, body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body, redirect: "manual" }));
+      const responseHeaders = new Headers(response.headers);
+      responseHeaders.delete("access-control-allow-origin");
+      responseHeaders.set("cache-control", "private, no-store");
+      return new Response(response.body, { status: response.status, headers: responseHeaders });
     }
     if (url.pathname.startsWith("/api/")) {
       const backendUrl = new URL(url.pathname + url.search, LEGACY_BACKEND);

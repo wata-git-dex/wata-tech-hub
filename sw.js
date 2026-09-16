@@ -1,11 +1,11 @@
-const VERSION = "wata-wonderful-world-v32-profile-command-center";
+const VERSION = "wata-wonderful-world-v33-shared-profile-travel";
 const APP_SHELL = ["./design-polish.css?v=1",
-  "/", "/index.html", "/styles.css?v=46", "/app.js?v=41", "/i18n.js", "/data-adapter.js", "/theme-init.js", "/lib/wata-profile.js?v=1.1.0",
+  "/", "/index.html", "/styles.css?v=47", "/app.js?v=42", "/auth.js", "/config.js", "/i18n.js", "/data-adapter.js", "/theme-init.js", "/lib/wata-profile.js?v=1.1.0",
   "/assets/tech-hub/brand-logo-v3.png",
   "/manifest.webmanifest?v=2", "/favicon-32.png?v=6", "/apple-touch-icon.png?v=6",
   "/assets/tech-hub/icon-192-v6.png", "/assets/tech-hub/icon-512-v6.png",
   "/assets/tech-hub/icon-512-maskable-v6.png",
-  "/assets/wata-logo.png", "/assets/topography.svg", "/assets/topography-map.jpg",
+  "/assets/wata-logo.png", "/assets/topography.svg", "/assets/topography-map.jpg", "/assets/profile/countries.geojson",
   "/assets/apps/watadex/icon-192.png", "/assets/apps/registry/icon-192.png",
   "/assets/apps/community/icon.png", "/assets/apps/impact-map/icon.svg",
   "/assets/apps/website/icon.svg", "/assets/apps/field-app/icon.png",
