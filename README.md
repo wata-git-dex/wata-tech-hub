@@ -1,6 +1,10 @@
-# W.A.T.A. Toolkit
+# W.A.T.A. Wonderful World
 
-The central, access-aware launcher for W.A.T.A. applications and share-ready instructions.
+The primary member-facing W.A.T.A. account, shared-profile, and personal Toolkit surface. Community remains a separate optional application. The Toolkit launcher is one function inside Wonderful World, not a separate identity system.
+
+The 2026-09-09 navigation cohesion pass follows `../../docs/WATA-NAVIGATION-SYSTEM.md`: 44 px rounded-square header utilities, a compact flag-and-language popover, a grouped right drawer, synchronized language state, collapsed settings panels, keyboard/scrim/close behavior, and a separated sign-out action. Toolkit has no implemented notifications feed, so it intentionally omits the bell rather than presenting fake unread data.
+
+The 2026-09-11 safe-area candidate uses `viewport-fit=cover` plus one four-edge inset contract for the sticky header, landscape sidebar, content/footer edges, and full-height drawer. Synthetic portrait/landscape browser acceptance is recorded in `../../docs/WATA-SAFE-AREA-RELEASE-GATE.md`; physical iPhone Safari and installed-PWA acceptance remain pending and must not be inferred from CSS checks.
 
 - Production: `https://toolkit.cleanwata.org`
 - Compatibility addresses: `https://app.cleanwata.org`, `https://wata.cleanwata.org`
@@ -19,9 +23,13 @@ The static site and Pages advanced-mode Worker are written to `dist/`. Cloudflar
 
 ## Shared-data integration boundary
 
-`data-adapter.js` is the only UI-facing identity/data boundary. The interface calls `getSession()`, `signIn(email)`, `signOut()`, `getBootstrap()`, and `updateProfile(profile)` there. Today, `getBootstrap()` preserves the existing `/api/bootstrap` request and normalizes the current Airtable/Worker payload into the future shared response shape (`user`, `profile`, `roles`, `apps`, and `trips`).
+`data-adapter.js` is the only UI-facing identity/data boundary. The interface calls `getSession()`, `signIn()`, `signOut()`, and `getBootstrap()` there. Today, `getBootstrap()` preserves the existing `/api/bootstrap` request and normalizes the current Airtable/Worker payload into the shared response shape (`user`, `profile`, `roles`, `apps`, `trips`, and an optional person-scoped `filters` list).
 
-Profile edits in this interface pass are explicitly temporary local drafts. They do not create a Toolkit-only users table, profile database, authentication service, or roles/permissions matrix. The later ecosystem identity integration should replace the adapter internals, not the views.
+The branded entry screen deliberately continues to the existing secure verification flow. It does not copy Community's origin-local Supabase session or pretend the future server-managed cross-domain session is already deployed. Google and W.A.T.A. credentials may appear as separate methods only when the platform session service can bind both to the same canonical identity.
+
+`filters` is the **My Filters** relationship view, not a Registry grant. The adapter retains only stable filter identity, location summary, status, and verified relationship type. Full Filter Registry access still requires its own app grant and operational scopes.
+
+The W.A.T.A. platform owns one reusable shared-profile component; Toolkit must host that component in place and must not create a Toolkit-only profile store or require a visit to Community. The current read-only profile surface remains an integration gap until the coordinated component adapter is accepted. Follow `../../docs/WATA-SHARED-PROFILE-SYSTEM.md` before changing that boundary.
 
 ## Deployment boundary
 

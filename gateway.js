@@ -25,9 +25,12 @@ const CARD_CATALOG = {
     ]
   },
   community: {
-    name: "Community App",
-    description: "Training, discussion, and the future W.A.T.A. community home.",
-    url: "",
+    name: "W.A.T.A. Community",
+    description: "Connect, learn, coordinate, and share across the W.A.T.A. community.",
+    url: "https://community.cleanwata.org/",
+    lifecycle_status: "beta",
+    development_status: "active",
+    version: "1.3.12",
     audience: "All active members"
   },
   impact_map: {
@@ -45,8 +48,58 @@ const CARD_CATALOG = {
   field_kit: {
     name: "Field App",
     description: "Offline-first field guidance, checklists, imagery, and approved survey launch points.",
-    url: "",
+    url: "https://wata-field-app.pages.dev/",
+    lifecycle_status: "alpha",
+    development_status: "active",
+    version: "0.20.0",
     audience: "Field & team"
+  },
+  field_app: {
+    name: "Field App",
+    description: "Offline-first field guidance, checklists, imagery, and approved survey launch points.",
+    url: "https://wata-field-app.pages.dev/",
+    lifecycle_status: "alpha",
+    development_status: "active",
+    version: "0.20.0",
+    audience: "Field & team"
+  },
+  filter_registry: {
+    name: "Filter Registry",
+    description: "Review filters, follow-ups, impact, and issues within your approved program scope.",
+    url: "https://registry.cleanwata.org/",
+    lifecycle_status: "beta",
+    development_status: "active",
+    version: "1.3.0",
+    audience: "Approved portal users"
+  },
+  project_hub: {
+    name: "Project Hub",
+    description: "Plan programs, trips, assignments, and the work connected to each deployment.",
+    url: "https://projects.cleanwata.org/",
+    lifecycle_status: "beta",
+    development_status: "active",
+    version: "1.0.0",
+    audience: "Approved project members"
+  },
+  grant_hub: {
+    name: "Grant Hub",
+    description: "Review W.A.T.A. grants and the projects connected to them.",
+    url: "https://wata-grant-hub.pages.dev/",
+    lifecycle_status: "alpha",
+    availability_status: "internal",
+    development_status: "active",
+    version: "0.1.0",
+    audience: "Approved grant team"
+  },
+  command_center: {
+    name: "Command Center",
+    description: "The founder workspace for cross-app views, actions, alerts, and health.",
+    url: "https://wata-command-center.pages.dev/",
+    lifecycle_status: "alpha",
+    availability_status: "preview",
+    development_status: "active",
+    version: "0.2.4",
+    audience: "Founder"
   },
   mwater: {
     name: "mWater Surveyor",
@@ -63,7 +116,7 @@ async function applyHubCatalog(response) {
   payload.tools = payload.tools.map(tool => {
     const card = CARD_CATALOG[tool.id];
     if (!card) return tool;
-    return { ...tool, ...card, status: card.url ? "ready" : "coming_soon" };
+    return { ...tool, ...card, status: card.status || (card.url ? "ready" : "coming_soon") };
   });
   const headers = new Headers(response.headers);
   headers.delete("content-length");

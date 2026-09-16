@@ -1,7 +1,9 @@
 import { dataAdapter } from "./data-adapter.js";
 import { languageLocale, normalizeLanguage, translateText } from "./i18n.js";
+import { isWataProfileComplete, mountWataProfile, WATA_PROFILE_COMPONENT_VERSION } from "./lib/wata-profile.js?v=1.1.0";
 
 const SNAPSHOT_KEY = "wata-tech-hub-bootstrap-v2";
+const PROFILE_PROMPT_KEY = "wata.toolkit.profile-prompt-deferred.v1";
 const SNAPSHOT_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 const WATA_REFERENCE_COPY = Object.freeze({
   mission: "Water Access To All brings clean, safe drinking water to communities without reliable access—installing filtration systems while developing the local capacity and leadership to carry the work forward.",
@@ -25,7 +27,7 @@ const PROFILE_HINTS = Object.freeze({
 });
 const COUNTRY_CODES = "AF AL DZ AD AO AG AR AM AU AT AZ BS BH BD BB BY BE BZ BJ BT BO BA BW BR BN BG BF BI CV KH CM CA CF TD CL CN CO KM CD CG CR CI HR CU CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FJ FI FR GA GM GE DE GH GR GD GT GN GW GY HT HN HU IS IN ID IR IQ IE IL IT JM JP JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MG MW MY MV ML MT MH MR MU MX FM MD MC MN ME MA MZ MM NA NR NP NL NZ NI NE NG MK NO OM PK PW PS PA PG PY PE PH PL PT QA RO RU RW KN LC VC WS SM ST SA SN RS SC SL SG SK SI SB SO ZA SS ES LK SD SR SE CH SY TW TJ TZ TH TL TG TO TT TN TR TM TV UG UA AE GB US UY UZ VU VA VE VN YE ZM ZW".split(" ");
 
-const state = { loading: true, error: null, bootstrap: null, offlineSnapshot: false, saving: false };
+const state = { loading: true, error: null, bootstrap: null, offlineSnapshot: false, saving: false, profileMode: "edit" };
 let currentView = location.hash.slice(1) || "home";
 let currentLanguage = normalizeLanguage(localStorage.getItem("wata-language") || navigator.language);
 const app = document.querySelector("#app");
@@ -34,8 +36,10 @@ const scrim = document.querySelector("#drawerScrim");
 const menuButton = document.querySelector("#menuButton");
 const languageMenuButton = document.querySelector("#languageMenuButton");
 const languageMenu = document.querySelector("#languageMenu");
+let drawerReturnFocus = null;
+let profileMount = null;
 document.documentElement.lang = currentLanguage;
-document.title = currentLanguage === "es" ? "Kit de Herramientas W.A.T.A." : "W.A.T.A. Toolkit";
+document.title = currentLanguage === "es" ? "W.A.T.A. Mundo Maravilloso" : "W.A.T.A. Wonderful World";
 
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 const display = (value, fallback = "Not provided") => value == null || value === "" || (Array.isArray(value) && !value.length) ? fallback : Array.isArray(value) ? value.join(", ") : String(value);
@@ -80,7 +84,7 @@ function syncLanguageControl() {
   const topbarProduct = document.querySelector("#topbarProduct");
   if (topbarTitle) topbarTitle.setAttribute("aria-label", spanish ? "Agua para Todas las Personas" : "Water Access to All");
   if (topbarBrand) topbarBrand.textContent = spanish ? "Agua para todos" : "Water Access to All";
-  if (topbarProduct) topbarProduct.textContent = spanish ? "Kit W.A.T.A." : "W.A.T.A. Toolkit";
+  if (topbarProduct) topbarProduct.textContent = spanish ? "W.A.T.A. Mundo Maravilloso" : "W.A.T.A. Wonderful World";
   const drawerLanguageValue = document.querySelector("#drawerLanguageValue");
   if (drawerLanguageValue) drawerLanguageValue.textContent = spanish ? "Español" : "English";
   const appearanceValue = document.querySelector("#appearanceValue");
@@ -97,7 +101,7 @@ function applyLanguage(language, persist = true) {
   currentLanguage = normalizeLanguage(language);
   if (persist) localStorage.setItem("wata-language", currentLanguage);
   document.documentElement.lang = currentLanguage;
-  document.title = currentLanguage === "es" ? "Kit de Herramientas W.A.T.A." : "W.A.T.A. Toolkit";
+  document.title = currentLanguage === "es" ? "W.A.T.A. Mundo Maravilloso" : "W.A.T.A. Wonderful World";
   closeLanguageMenu();
   render();
 }
@@ -115,15 +119,32 @@ function iconFor(appData) {
   return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h6l1.8 2H20.5v10h-17z"/><path d="M8 13h8M12 9v8"/></svg>`;
 }
 
-function statusLabel(status) {
-  return status === "ready" ? "Ready" : "Coming soon";
+function statusLabel(appData) {
+  if (appData.operational_status === "unreachable") return "Unavailable";
+  if (appData.status !== "ready") return appData.lifecycle_status === "planned" ? "Planned" : "Coming soon";
+  return ({ alpha: "Alpha", beta: "Beta", production: "Live", external: "External" })[appData.lifecycle_status] || "Ready";
+}
+
+function appMetadata(appData) {
+  const details = [];
+  if (appData.availability_status === "internal") details.push("Internal");
+  else if (appData.availability_status === "preview") details.push("Preview");
+  if (appData.development_status === "active") details.push("Active development");
+  else if (appData.development_status === "maintenance") details.push("Maintenance");
+  if (appData.version) details.push(`Version ${appData.version}`);
+  if (["degraded", "unreachable"].includes(appData.operational_status)) details.push(`Operational: ${appData.operational_status}`);
+  return details.length ? `<p class="app-meta">${details.map(escapeHtml).join(" · ")}</p>` : "";
+}
+
+function isAppLaunchable(appData) {
+  return appData.status === "ready" && Boolean(appData.url) && appData.availability_status !== "unavailable" && appData.operational_status !== "unreachable" && !["planned", "paused", "retired"].includes(appData.lifecycle_status);
 }
 
 function appCard(appData) {
-  const ready = appData.status === "ready" && Boolean(appData.url);
-  return `<article class="app-card ${ready ? "ready" : "soon"}" tabindex="${ready ? "0" : "-1"}" ${ready ? `role="link" data-app-url="${escapeHtml(appData.url)}"` : ""}>
-    <div class="card-top"><span class="card-icon">${iconFor(appData)}</span><span class="status ${ready ? "ready" : "soon"}">${statusLabel(appData.status)}</span></div>
-    <h3>${escapeHtml(appData.name)}</h3><p>${escapeHtml(appData.description)}</p>
+  const ready = isAppLaunchable(appData);
+  return `<article class="app-card ${ready ? "ready" : "soon"}" tabindex="${ready ? "0" : "-1"}" ${ready ? `role="link" data-app-key="${escapeHtml(appData.app_key)}" data-app-url="${escapeHtml(appData.url)}"` : ""}>
+    <div class="card-top"><span class="card-icon">${iconFor(appData)}</span><span class="status ${ready ? "ready" : "soon"}">${statusLabel(appData)}</span></div>
+    <h3>${escapeHtml(appData.name)}</h3><p>${escapeHtml(appData.description)}</p>${appMetadata(appData)}
   </article>`;
 }
 
@@ -141,15 +162,43 @@ function tripRow(trip) {
   return `<${tag} class="trip-row"${link}><span class="trip-date"><b>${start.day}</b><small>${start.month}</small></span><span class="trip-copy"><strong>${escapeHtml(trip.name)}</strong><small>${escapeHtml(context || "Details coming soon")}</small></span><span class="trip-role">${escapeHtml(trip.trip_role || "Assigned")}</span></${tag}>`;
 }
 
+function relationshipLabel(filter) {
+  if (filter.relationship_label) return filter.relationship_label;
+  return ({
+    installed_by: "Installer",
+    installer: "Installer",
+    ambassador: "Ambassador",
+    steward: "Filter steward",
+    surveyor: "Surveyor",
+    followup_owner: "Follow-up assigned"
+  })[filter.relationship_type.toLowerCase()] || filter.relationship_type || "Connected filter";
+}
+
+function personalFilterRow(filter) {
+  const identity = filter.barcode || filter.label || filter.id;
+  const location = [filter.community, filter.country].filter(Boolean).join(" · ") || "Location available in the approved record";
+  return `<article class="personal-filter-row"><span class="filter-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.8c3.2 4.4 6.1 7.8 6.1 11.4a6.1 6.1 0 1 1-12.2 0C5.9 10.6 8.8 7.2 12 2.8Z"/><path d="M9.2 15.2a3.2 3.2 0 0 0 3.1 2.4"/></svg></span><span class="filter-copy"><strong>${escapeHtml(identity)}</strong><small>${escapeHtml(location)}</small></span><span class="filter-relationship">${escapeHtml(relationshipLabel(filter))}</span>${filter.status ? `<small class="filter-status">${escapeHtml(filter.status)}</small>` : ""}</article>`;
+}
+
 function homeView() {
-  const { apps, trips } = state.bootstrap;
-  const ready = apps.filter(item => item.status === "ready");
-  const development = apps.filter(item => item.status !== "ready");
-  return `<section class="hero"><div class="hero-waves" aria-hidden="true"></div><div><p class="eyebrow">W.A.T.A. Toolkit</p><h1>Apps &amp; instructions</h1><p>Links and guides available to your account.</p></div></section>
+  const { apps, trips, filters = [] } = state.bootstrap;
+  const ready = apps.filter(isAppLaunchable);
+  const development = apps.filter(item => !isAppLaunchable(item));
+  return `<section class="hero"><div class="hero-waves" aria-hidden="true"></div><div><p class="eyebrow">W.A.T.A. Wonderful World</p><h1>Your profile &amp; toolkit</h1><p>Your approved tools, work, and W.A.T.A. information in one place.</p></div></section>
+    ${profileJourneyBanner()}
     ${trips.length ? `<section class="trips"><div class="section-head"><div><h2>Upcoming trips</h2><p>Your confirmed assignments.</p></div></div>${trips.map(tripRow).join("")}</section>` : ""}
-    <section id="apps"><div class="section-head"><div><h2>Apps</h2><p>${ready.length ? "Tap an app to open it." : "No apps are currently assigned to this account."}</p></div></div>${ready.length ? `<div class="app-grid">${ready.map(appCard).join("")}</div>` : `<div class="empty-state"><strong>No apps assigned</strong><p>Your Airtable App Access record is active, but no app checkboxes are currently enabled.</p></div>`}</section>
+    ${filters.length ? `<section class="personal-filters"><div class="section-head"><div><h2>My filters</h2><p>Filters connected directly to your verified W.A.T.A. identity.</p></div></div><div class="personal-filter-list">${filters.map(personalFilterRow).join("")}</div><p class="scope-note">This is your personal filter view. It does not provide partner-wide Filter Registry access.</p></section>` : ""}
+    <section id="apps"><div class="section-head"><div><h2>Apps</h2><p>${ready.length ? "Tap an app to open it." : "No apps are currently available to this account."}</p></div></div>${ready.length ? `<div class="app-grid">${ready.map(appCard).join("")}</div>` : `<div class="empty-state"><strong>No apps available</strong><p>Your verified access does not currently include a launchable W.A.T.A. app.</p></div>`}</section>
     ${development.length ? `<section class="development"><div class="section-head"><div><h2>In development</h2><p>Tools being built or prepared.</p></div></div><div class="app-grid">${development.map(appCard).join("")}</div></section>` : ""}
     ${state.offlineSnapshot ? `<div class="offline-note">Showing your last verified app view. Links may require a connection.</div>` : ""}`;
+}
+
+function profileJourneyBanner() {
+  const profile = state.bootstrap?.profile;
+  if (!profile || isWataProfileComplete(profile)) return "";
+  const connected = state.bootstrap?.integration?.profile?.writable;
+  if (!connected) return `<section class="journey-note pending"><div><p class="eyebrow">One W.A.T.A. account</p><strong>Shared profile setup is being connected.</strong><p>Your verified app access remains unchanged. The Toolkit will not create a separate profile or pretend that an unsaved profile is complete.</p></div></section>`;
+  return `<section class="journey-note"><div><p class="eyebrow">One W.A.T.A. account</p><strong>Complete your shared W.A.T.A. profile.</strong><p>Your profile and preferences follow you across participating W.A.T.A. apps.</p></div><button class="primary-button" type="button" data-view="profile" data-profile-mode="onboarding">Continue profile setup</button></section>`;
 }
 
 function inputField(name, label, value, options = {}) {
@@ -196,16 +245,70 @@ function profileView() {
   const profile = state.bootstrap.profile;
   const roles = state.bootstrap.roles.map(role => translateText(role.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase()), currentLanguage)).join(" · ") || translateText("Member", currentLanguage);
   const initials = display(profile.display_name, profile.email).split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
-  return `<header class="view-head"><p class="eyebrow">Shared profile</p><h1>Your W.A.T.A. profile</h1><p>Choose what fits and add what is missing. The Toolkit still saves a local draft until the shared W.A.T.A. account connection is switched on.</p></header>
-    <form id="profileForm" class="profile-card"><div class="profile-summary"><label class="profile-photo">${avatarMarkup(profile, "profile-avatar", initials || "W")}<input id="avatarInput" type="file" accept="image/png,image/jpeg,image/webp" hidden><span>Change photo</span></label><div><strong>${escapeHtml(display(profile.display_name, "W.A.T.A. member"))}</strong><small>${escapeHtml(roles)}</small></div></div><input id="avatarUrl" type="hidden" name="avatar_url" value="${escapeHtml(profile.avatar_url)}">
-      <div class="profile-grid profile-core">${inputField("display_name", "Display name", profile.display_name)}${countryField(profile.country)}${tagPicker("skills", "Skills", profile.skills)}${tagPicker("interests", "Interests", profile.interests)}</div>
-      <details class="profile-more"><summary>Contact &amp; additional details <span aria-hidden="true">⌄</span></summary><div class="profile-grid">
-        ${inputField("email", "Email", profile.email, { type: "email" })}${inputField("phone", "Phone", profile.phone, { type: "tel" })}
-        ${inputField("organization", "Organization", profile.organization)}${inputField("city", "City", profile.city)}
-        ${inputField("language", "Preferred language", profile.language)}${inputField("bio", "Short bio", profile.bio, { textarea: true, wide: true })}
-      </div><fieldset><legend>Emergency contact</legend><div class="profile-grid">${inputField("emergency_contact_name", "Name", profile.emergency_contact_name)}${inputField("emergency_contact_phone", "Phone", profile.emergency_contact_phone, { type: "tel" })}</div></fieldset></details>
-      <button class="primary-button profile-save" type="submit">${state.saving ? "Saving…" : "Save profile"}</button><p class="form-note" id="profileMessage">Saved on this device for now; the shared profile service is the next connection.</p>
-    </form>`;
+  const skills = Array.isArray(profile.skills) ? profile.skills : [];
+  const interests = Array.isArray(profile.interests) ? profile.interests : [];
+  if (state.bootstrap.integration?.profile?.writable) return `<header class="view-head"><p class="eyebrow">Shared profile</p><h1>${state.profileMode === "onboarding" ? "Create your W.A.T.A. profile" : "Your W.A.T.A. profile"}</h1><p>One profile for every participating W.A.T.A. app. Roles and app access remain managed separately.</p></header><section class="profile-component-card"><div id="sharedProfileHost" aria-live="polite"></div></section>`;
+  return `<header class="view-head"><p class="eyebrow">Shared profile</p><h1>Your W.A.T.A. profile</h1><p>Your identity and profile belong to the W.A.T.A. platform, not to one individual app.</p></header>
+    <section class="profile-card"><div class="profile-summary">${avatarMarkup(profile, "profile-avatar", initials || "W")}<div><strong>${escapeHtml(display(profile.display_name, "W.A.T.A. profile"))}</strong><small>${escapeHtml(roles)}</small></div></div>
+      <div class="profile-grid profile-core">
+        <div class="profile-field"><span>Nationality</span><strong>${escapeHtml(display(profile.country, "Not added"))}</strong></div>
+        <div class="profile-field"><span>Professional skills</span><strong>${escapeHtml(skills.length ? skills.join(" · ") : "Not added")}</strong></div>
+        <div class="profile-field wide"><span>Personal interests</span><strong>${escapeHtml(interests.length ? interests.join(" · ") : "Not added")}</strong></div>
+      </div>
+      <div class="profile-integration-note"><strong>Shared editor connection pending</strong><p>The reusable in-app profile editor will open here once its versioned platform interface is available. No Toolkit-only profile store or Community redirect is used.</p></div>
+    </section>`;
+}
+
+function profileRoleLabel() {
+  const profile = state.bootstrap?.profile || {};
+  if (profile.role_label) return profile.role_label;
+  return state.bootstrap?.roles?.map(role => role.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase())).join(" · ") || "Role pending";
+}
+
+function closeProfile({ reason = "cancel" } = {}) {
+  if (state.profileMode === "onboarding" && reason !== "saved") {
+    try { sessionStorage.setItem(PROFILE_PROMPT_KEY, String(state.bootstrap?.user?.id || state.bootstrap?.user?.email || "member")); } catch {}
+  }
+  state.profileMode = "edit";
+  currentView = "home";
+  history.replaceState(null, "", "#home");
+  render();
+}
+
+function mountSharedProfileSurface() {
+  const host = document.querySelector("#sharedProfileHost");
+  const bootstrap = state.bootstrap;
+  if (!host || !bootstrap?.integration?.profile?.writable) return;
+  let pendingAvatar = null;
+  profileMount = mountWataProfile(host, {
+    language: currentLanguage,
+    mode: state.profileMode,
+    profile: bootstrap.profile,
+    roleLabel: profileRoleLabel(),
+    online: () => navigator.onLine,
+    adapter: {
+      loadProfile: ({ signal }) => dataAdapter.loadProfile(bootstrap, { signal }),
+      ...(bootstrap.integration.profile.avatar_writable ? { uploadAvatar: async (file, { signal }) => {
+        pendingAvatar = await dataAdapter.uploadAvatar(bootstrap, file, { signal });
+        return pendingAvatar;
+      } } : {}),
+      saveProfile: async (patch, { signal }) => {
+        const current = bootstrap.profile || {};
+        const avatarRef = pendingAvatar?.avatar_url === patch.avatar_url ? pendingAvatar.avatar_ref : (patch.avatar_url ? current.avatar_ref : null);
+        const result = await dataAdapter.updateProfile(bootstrap, { ...patch, avatar_url: avatarRef }, { signal, completeOnboarding: state.profileMode === "onboarding" });
+        pendingAvatar = null;
+        return result;
+      }
+    },
+    onSaved(profile) {
+      bootstrap.profile = { ...bootstrap.profile, ...profile, display_name: profile.display_name || profile.name };
+      localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ savedAt: Date.now(), bootstrap }));
+      try { sessionStorage.removeItem(PROFILE_PROMPT_KEY); } catch {}
+      if (state.profileMode === "onboarding") closeProfile({ reason: "saved" });
+      else render();
+    },
+    onClose: closeProfile
+  });
 }
 
 function missionView() {
@@ -224,29 +327,54 @@ function aboutView() {
 
 function settingsView() {
   return `<header class="view-head"><p class="eyebrow">Toolkit</p><h1>Settings &amp; help</h1><p>How access, updates, and offline behavior work.</p></header><div class="help-grid">
-    <article><span>01</span><h3>Your access</h3><p>Your active Airtable App Access record and individual checkboxes control the apps shown here. Partner access to the Filter Registry is scoped inside the Registry; Partner Portal is not a separate app.</p></article>
+    <article><span>01</span><h3>Your access</h3><p>The Toolkit displays the effective apps returned for your verified identity. Each destination still enforces its own grant and scope; hiding a card is never the security boundary.</p></article>
     <article><span>02</span><h3>Instructions</h3><p>Open Instructions from the menu to reach each app’s current PDF and share-ready PNG.</p></article>
     <article><span>03</span><h3>Offline use</h3><p>The Toolkit remembers your last verified launcher view for up to seven days. Opening external apps and refreshing access still require a connection.</p></article>
-    <article><span>04</span><h3>Shared identity</h3><p>This interface is prepared for the future shared W.A.T.A. account system. It does not create another authentication, roles, profiles, or permissions backend.</p></article>
+    <article><span>04</span><h3>Shared identity</h3><p>Supabase is the target W.A.T.A. identity, profile, grant, and scope authority. The currently deployed Toolkit still uses the transitional Cloudflare Access and legacy bootstrap path until the coordinated migration is accepted.</p></article>
   </div>`;
 }
 
 function loadingView() {
-  return `<section class="hero loading-hero"><div class="hero-waves" aria-hidden="true"></div><div><p class="eyebrow">W.A.T.A. Toolkit</p><h1>Apps &amp; instructions</h1><p>Preparing your available tools.</p></div></section><section class="loading-launcher" aria-label="Loading your apps"><div class="section-head"><div><h2>Apps</h2><p>Checking your access.</p></div><div class="loader" aria-hidden="true"><span></span><span></span><span></span></div></div><div class="skeleton-grid">${Array.from({ length: 6 }, () => `<span class="skeleton-app"><i></i><b></b></span>`).join("")}</div></section>`;
+  return `<section class="hero loading-hero"><div class="hero-waves" aria-hidden="true"></div><div><p class="eyebrow">W.A.T.A. Wonderful World</p><h1>Your profile &amp; toolkit</h1><p>Preparing your account.</p></div></section><section class="loading-launcher" aria-label="Loading your apps"><div class="section-head"><div><h2>Toolkit</h2><p>Checking your access.</p></div><div class="loader" aria-hidden="true"><span></span><span></span><span></span></div></div><div class="skeleton-grid">${Array.from({ length: 6 }, () => `<span class="skeleton-app"><i></i><b></b></span>`).join("")}</div></section>`;
 }
 
 function errorView() {
   const unauthorized = state.error?.status === 401 || state.error?.status === 403;
-  return `<section class="state-card error"><p class="eyebrow">${unauthorized ? "Secure access" : "Connection issue"}</p><h1>${unauthorized ? "Verify your W.A.T.A. email" : "The Toolkit could not load"}</h1><p>${escapeHtml(unauthorized ? "Continue through the existing W.A.T.A. verification screen. No new Toolkit-only login system has been created." : state.error?.message || "Try again when you have a connection.")}</p><button class="primary-button" type="button" id="retryButton">${unauthorized ? "Continue to sign in" : "Try again"}</button></section>`;
+  const title = unauthorized ? "Welcome back." : "Wonderful World could not connect";
+  const message = unauthorized ? "One W.A.T.A. identity connects your shared profile to every tool and record you are authorized to use." : state.error?.message || "Try again when you have a connection.";
+  return `<section class="entry-shell ${unauthorized ? "auth-entry" : "connection-entry"}"><div class="entry-visual"><div class="entry-brand"><img src="/assets/tech-hub/icon-192-v6.png" alt=""><span><small>W.A.T.A.</small><strong>Wonderful World</strong></span></div><div class="entry-story"><p class="eyebrow">Your W.A.T.A. starting point</p><h2>One profile.<br>Every approved tool.</h2><p>Create and maintain your shared profile, open your personal toolkit, follow assigned work, and stay connected to the filters and communities you support.</p><ul><li>One shared W.A.T.A. profile</li><li>Only the apps approved for you</li><li>Your verified filters, trips, and assignments</li></ul></div><small class="entry-signature">Water Access To All · Wonderful World</small></div><section class="entry-panel"><p class="eyebrow">${unauthorized ? "Water Access To All" : "Connection issue"}</p><h1>${title}</h1><p class="entry-intro">${escapeHtml(message)}</p>${unauthorized ? `<div class="entry-auth-note"><strong>One account, secure access</strong><p>Google or W.A.T.A. credentials will resolve to the same approved identity when the shared session service is connected. Signing in never grants new permissions.</p></div>` : ""}<button class="primary-button entry-action" type="button" id="retryButton">${unauthorized ? "Continue to secure sign-in" : "Try again"}</button><small class="entry-help">${unauthorized ? "The current verification screen will show the sign-in method available to your approved account." : "Your last verified data remains protected while the connection is unavailable."}</small></section></section>`;
 }
 
 function render() {
+  profileMount?.destroy();
+  profileMount = null;
+  const entryMode = Boolean(state.error && !state.bootstrap);
+  document.body.classList.toggle("entry-mode", entryMode);
   if (state.loading && !state.bootstrap) app.innerHTML = loadingView();
-  else if (state.error && !state.bootstrap) app.innerHTML = errorView();
+  else if (entryMode) app.innerHTML = errorView();
   else app.innerHTML = currentView === "profile" ? profileView() : currentView === "mission" ? missionView() : currentView === "about" ? aboutView() : currentView === "settings" ? settingsView() : homeView();
   syncNavigation();
   translateDom(document);
   syncLanguageControl();
+  syncCurrentDestination();
+  if (currentView === "profile") mountSharedProfileSurface();
+}
+
+function beginProfileOnboardingIfNeeded(bootstrap) {
+  if (!bootstrap?.integration?.profile?.writable || isWataProfileComplete(bootstrap.profile) || currentView !== "home") return;
+  let deferred = false;
+  try { deferred = sessionStorage.getItem(PROFILE_PROMPT_KEY) === String(bootstrap.user?.id || bootstrap.user?.email || "member"); } catch {}
+  if (deferred) return;
+  state.profileMode = "onboarding";
+  currentView = "profile";
+  history.replaceState(null, "", "#profile");
+}
+
+function syncCurrentDestination() {
+  document.querySelectorAll('#menuDrawer [data-view]').forEach(control => {
+    if (control.dataset.view === currentView) control.setAttribute("aria-current", "page");
+    else control.removeAttribute("aria-current");
+  });
 }
 
 function syncNavigation() {
@@ -256,17 +384,26 @@ function syncNavigation() {
   const initials = display(profile.display_name, profile.email).split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
   const roles = bootstrap.roles.map(role => translateText(role.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase()), currentLanguage)).join(" · ") || translateText("Member", currentLanguage);
   document.querySelector("#menuProfile").innerHTML = `${avatarMarkup(profile, "avatar", initials || "W")}<span><strong>${escapeHtml(display(profile.display_name, "W.A.T.A. member"))}</strong><small>${escapeHtml(roles)}</small></span>`;
-  document.querySelector("#quickLinks").innerHTML = bootstrap.apps.map(item => item.status === "ready" && item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer"><span>${iconFor(item)}</span>${escapeHtml(item.name)}</a>` : `<span class="disabled"><span>${iconFor(item)}</span>${escapeHtml(item.name)}</span>`).join("");
+  document.querySelector("#quickLinks").innerHTML = bootstrap.apps.map(item => isAppLaunchable(item) ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer"><span>${iconFor(item)}</span>${escapeHtml(item.name)}</a>` : `<span class="disabled"><span>${iconFor(item)}</span>${escapeHtml(item.name)}</span>`).join("");
   document.querySelector("#menuGuideList").innerHTML = bootstrap.apps.map(item => { const guides = guideList(item); return `<div><strong>${escapeHtml(item.name)}</strong><span>${guides.length ? guides.map(guide => `<a href="${escapeHtml(guide.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(guide.format)}</a>`).join("") : "Coming soon"}</span></div>`; }).join("");
   updateConnection();
 }
 
 function openMenu(open) {
-  if (open) closeLanguageMenu();
+  const wasOpen = drawer.classList.contains("open");
+  if (open) {
+    closeLanguageMenu();
+    drawerReturnFocus = menuButton;
+    document.querySelectorAll(".drawer-submenu").forEach(panel => { panel.hidden = true; });
+    document.querySelectorAll('[aria-controls="appearancePanel"], [aria-controls="drawerLanguagePanel"], [aria-controls="menuGuideList"]').forEach(control => control.setAttribute("aria-expanded", "false"));
+  }
   drawer.classList.toggle("open", open);
   drawer.setAttribute("aria-hidden", String(!open));
   menuButton.setAttribute("aria-expanded", String(open));
   scrim.hidden = !open;
+  document.body.classList.toggle("drawer-open", open);
+  if (open) requestAnimationFrame(() => document.querySelector("#closeMenu")?.focus());
+  else if (wasOpen && drawerReturnFocus?.isConnected) drawerReturnFocus.focus();
 }
 
 function setAppearance(kind, value) {
@@ -349,6 +486,7 @@ async function loadBootstrap({ background = false } = {}) {
   const timeout = setTimeout(() => controller.abort(), 20000);
   try {
     const bootstrap = await dataAdapter.getBootstrap({ signal: controller.signal });
+    beginProfileOnboardingIfNeeded(bootstrap);
     state.bootstrap = bootstrap; state.error = null; state.offlineSnapshot = false;
     localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ savedAt: Date.now(), bootstrap }));
   } catch (error) {
@@ -386,37 +524,19 @@ document.addEventListener("click", async event => {
   if (event.target.closest("#instructionsButton")) return toggleDrawerPanel("instructionsButton", "menuGuideList");
   if (event.target.closest("#appearanceButton")) return toggleDrawerPanel("appearanceButton", "appearancePanel");
   if (event.target.closest("#drawerLanguageButton")) return toggleDrawerPanel("drawerLanguageButton", "drawerLanguagePanel");
+  if (event.target.closest("#signOutButton")) { openMenu(false); profileMount?.destroy(); localStorage.removeItem(SNAPSHOT_KEY); state.bootstrap = null; return dataAdapter.signOut(); }
   const copy = event.target.closest("[data-copy-key]"); if (copy) { try { await navigator.clipboard.writeText(translateText(WATA_REFERENCE_COPY[copy.dataset.copyKey], currentLanguage)); copy.textContent = translateText("Copied", currentLanguage); setTimeout(() => { copy.textContent = translateText("Copy again", currentLanguage); }, 1200); } catch { copy.textContent = translateText("Copy unavailable", currentLanguage); } return; }
   const appTarget = event.target.closest("[data-app-url]"); if (appTarget) { window.open(appTarget.dataset.appUrl, "_blank", "noopener,noreferrer"); return; }
-  const view = event.target.closest("[data-view]"); if (view) { currentView = view.dataset.view; history.replaceState(null, "", `#${currentView}`); openMenu(false); render(); scrollTo({ top: 0, behavior: "smooth" }); return; }
+  const view = event.target.closest("[data-view]"); if (view) { currentView = view.dataset.view; state.profileMode = view.dataset.profileMode || "edit"; history.replaceState(null, "", `#${currentView}`); openMenu(false); render(); scrollTo({ top: 0, behavior: "smooth" }); return; }
   if (event.target.closest("#retryButton")) { if (state.error?.status === 401 || state.error?.status === 403) return dataAdapter.signIn(); return loadBootstrap(); }
 });
 
 document.addEventListener("keydown", event => { if (event.key === "Enter" && event.target.matches("[data-tag-input]")) { event.preventDefault(); addCustomTag(event.target); return; } if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-app-url]")) { event.preventDefault(); event.target.click(); } if (event.key === "Escape") { closeLanguageMenu(); openMenu(false); } });
 
-document.addEventListener("change", async event => {
-  if (event.target.id !== "avatarInput") return;
-  const message = document.querySelector("#profileMessage");
-  try {
-    const avatarUrl = await readAvatar(event.target.files?.[0]);
-    document.querySelector("#avatarUrl").value = avatarUrl;
-    const avatar = document.querySelector(".profile-avatar"); avatar.innerHTML = `<img src="${avatarUrl}" alt="Profile photo preview">`;
-    if (message) message.textContent = translateText("Photo ready. Save your profile to keep it on this device.", currentLanguage);
-  } catch (error) { if (message) message.textContent = translateText(error.message, currentLanguage); }
-});
-
-document.addEventListener("submit", async event => {
-  if (event.target.id !== "profileForm") return;
-  event.preventDefault(); state.saving = true;
-  const values = Object.fromEntries(new FormData(event.target));
-  const profile = { ...state.bootstrap.profile, ...values, skills: values.skills.split(",").map(value => value.trim()).filter(Boolean), interests: values.interests.split(",").map(value => value.trim()).filter(Boolean) };
-  const result = await dataAdapter.updateProfile(profile); state.bootstrap.profile = result.profile; state.saving = false; render();
-  const message = document.querySelector("#profileMessage"); if (message) message.textContent = translateText("Saved locally for this interface pass. The shared profile service will replace this adapter later.", currentLanguage);
-});
-
 addEventListener("online", () => loadBootstrap({ background: Boolean(state.bootstrap) }));
 addEventListener("offline", () => { state.offlineSnapshot = Boolean(state.bootstrap); updateConnection(); render(); });
 if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+document.documentElement.dataset.profileComponentVersion = WATA_PROFILE_COMPONENT_VERSION;
 
 setAppearance("theme", localStorage.getItem("wata-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
 setAppearance("accent", localStorage.getItem("wata-accent") || "cyan");

@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "W.A.T.A. Toolkit",
-  "short_name": "W.A.T.A. Toolkit",
-  "description": "W.A.T.A. apps, profile, trips, and instructions in one place.",
+  "name": "W.A.T.A. Wonderful World",
+  "short_name": "W.A.T.A.",
+  "description": "Your shared W.A.T.A. profile, authorized toolkit, filters, trips, and guidance in one place.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -1,0 +1,50 @@
+/* WATA visual polish 1.0 — host adapters define surfaces; no preference/data logic. */
+html { -webkit-text-size-adjust: 100%; }
+:where(button, a, input, select, textarea) { touch-action: manipulation; }
+:where(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid var(--polish-focus, #087ea0);
+  outline-offset: 3px;
+}
+:where(input, select, textarea) { max-width: 100%; }
+:where(h1, h2, h3) { overflow-wrap: break-word; }
+/* Opaque base works without backdrop-filter. Glass is an enhancement. */
+:is(.topbar, .language-menu) {
+  background: var(--polish-surface);
+  border-color: var(--polish-line);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .08), 0 12px 32px -24px rgb(0 0 0 / .45);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :is(.topbar, .language-menu) {
+    background: color-mix(in srgb, var(--polish-surface) 88%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(125%);
+    backdrop-filter: blur(20px) saturate(125%);
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  :is(.topbar, .language-menu) {
+    background: var(--polish-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.topbar, .language-menu) { animation: none; transition: none; }
+}
+@media (max-width: 700px) {
+  :where(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]), select, textarea) {
+    font-size: 16px;
+  }
+}
+@media (forced-colors: active) {
+  :is(.topbar, .language-menu) { background: Canvas; border: 1px solid CanvasText; box-shadow: none; }
+}
+
+/* Host: toolkit */
+:root { --polish-surface:var(--panel); --polish-line:var(--line); --polish-focus:var(--accent-1); }
+.topbar { --polish-surface:#10243e; }
+.language-menu button, .drawer-language-panel button { min-height:44px; }
+.topbar-title { min-width:0; }
+.tool-card, .app-card { min-width:0; }
+.tool-card p, .app-card p { line-height:1.6; overflow-wrap:break-word; }
+.menu-drawer { overscroll-behavior:contain; }
