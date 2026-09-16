@@ -27,8 +27,8 @@ function localEndpoint(value) {
   const path = string(value);
   if (!path || !path.startsWith("/") || path.startsWith("//")) return "";
   try {
-    const url = new URL(path, "https://toolkit.cleanwata.org");
-    return url.origin === "https://toolkit.cleanwata.org" ? `${url.pathname}${url.search}` : "";
+    const url = new URL(path, "https://app.cleanwata.org");
+    return url.origin === "https://app.cleanwata.org" ? `${url.pathname}${url.search}` : "";
   } catch { return ""; }
 }
 
@@ -159,6 +159,30 @@ function normalizePersonalFilters(body) {
   })).filter(filter => filter.id || filter.barcode);
 }
 
+function normalizeDistributions(body) {
+  const source = Array.isArray(body.distributions) ? body.distributions : [];
+  return source.map(raw => ({
+    id: string(raw.id || raw.distribution_id),
+    name: string(raw.name || raw.distribution_name),
+    community: string(raw.community_name || raw.community),
+    country: string(raw.country),
+    date: string(raw.date || raw.distribution_date || raw.starts_at),
+    role: string(raw.role || raw.relationship_label),
+    status: string(raw.status),
+    filter_count: Number.isFinite(Number(raw.filter_count)) ? Number(raw.filter_count) : null
+  })).filter(item => item.id || item.name || item.community);
+}
+
+function normalizeTraining(body) {
+  const source = Array.isArray(body.training) ? body.training : Array.isArray(body.learning) ? body.learning : [];
+  return source.map(raw => ({
+    id: string(raw.id || raw.course_id || raw.training_id),
+    name: string(raw.name || raw.course_name || raw.title),
+    detail: string(raw.detail || raw.provider || raw.completed_at || raw.due_at),
+    status: string(raw.status || (raw.completed_at ? "Complete" : "Assigned"))
+  })).filter(item => item.id || item.name);
+}
+
 export function normalizeBootstrap(body = {}) {
   const session = body.session || {};
   const roles = array(body.roles?.length ? body.roles : session.roles?.length ? session.roles : session.role).map(role => string(role).toLowerCase());
@@ -169,6 +193,8 @@ export function normalizeBootstrap(body = {}) {
     roles,
     apps: normalizeApps(body),
     filters: normalizePersonalFilters(body),
+    distributions: normalizeDistributions(body),
+    training: normalizeTraining(body),
     trips: array(body.trips).map(trip => ({
       id: string(trip.id), name: string(trip.name), starts_at: string(trip.starts_at || trip.startsAt),
       ends_at: string(trip.ends_at || trip.endsAt), status: string(trip.status), trip_role: string(trip.trip_role || trip.tripRole),

@@ -28,7 +28,8 @@ const PROFILE_HINTS = Object.freeze({
 const COUNTRY_CODES = "AF AL DZ AD AO AG AR AM AU AT AZ BS BH BD BB BY BE BZ BJ BT BO BA BW BR BN BG BF BI CV KH CM CA CF TD CL CN CO KM CD CG CR CI HR CU CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FJ FI FR GA GM GE DE GH GR GD GT GN GW GY HT HN HU IS IN ID IR IQ IE IL IT JM JP JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MG MW MY MV ML MT MH MR MU MX FM MD MC MN ME MA MZ MM NA NR NP NL NZ NI NE NG MK NO OM PK PW PS PA PG PY PE PH PL PT QA RO RU RW KN LC VC WS SM ST SA SN RS SC SL SG SK SI SB SO ZA SS ES LK SD SR SE CH SY TW TJ TZ TH TL TG TO TT TN TR TM TV UG UA AE GB US UY UZ VU VA VE VN YE ZM ZW".split(" ");
 
 const state = { loading: true, error: null, bootstrap: null, offlineSnapshot: false, saving: false, profileMode: "edit" };
-let currentView = location.hash.slice(1) || "home";
+let currentView = location.hash.slice(1) || "profile";
+if (currentView === "home") currentView = "profile";
 let currentLanguage = normalizeLanguage(localStorage.getItem("wata-language") || navigator.language);
 const app = document.querySelector("#app");
 const drawer = document.querySelector("#menuDrawer");
@@ -180,14 +181,11 @@ function personalFilterRow(filter) {
   return `<article class="personal-filter-row"><span class="filter-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.8c3.2 4.4 6.1 7.8 6.1 11.4a6.1 6.1 0 1 1-12.2 0C5.9 10.6 8.8 7.2 12 2.8Z"/><path d="M9.2 15.2a3.2 3.2 0 0 0 3.1 2.4"/></svg></span><span class="filter-copy"><strong>${escapeHtml(identity)}</strong><small>${escapeHtml(location)}</small></span><span class="filter-relationship">${escapeHtml(relationshipLabel(filter))}</span>${filter.status ? `<small class="filter-status">${escapeHtml(filter.status)}</small>` : ""}</article>`;
 }
 
-function homeView() {
-  const { apps, trips, filters = [] } = state.bootstrap;
+function toolkitView() {
+  const { apps } = state.bootstrap;
   const ready = apps.filter(isAppLaunchable);
   const development = apps.filter(item => !isAppLaunchable(item));
-  return `<section class="hero"><div class="hero-waves" aria-hidden="true"></div><div><p class="eyebrow">W.A.T.A. Wonderful World</p><h1>Your profile &amp; toolkit</h1><p>Your approved tools, work, and W.A.T.A. information in one place.</p></div></section>
-    ${profileJourneyBanner()}
-    ${trips.length ? `<section class="trips"><div class="section-head"><div><h2>Upcoming trips</h2><p>Your confirmed assignments.</p></div></div>${trips.map(tripRow).join("")}</section>` : ""}
-    ${filters.length ? `<section class="personal-filters"><div class="section-head"><div><h2>My filters</h2><p>Filters connected directly to your verified W.A.T.A. identity.</p></div></div><div class="personal-filter-list">${filters.map(personalFilterRow).join("")}</div><p class="scope-note">This is your personal filter view. It does not provide partner-wide Filter Registry access.</p></section>` : ""}
+  return `<section class="hero"><div class="hero-waves" aria-hidden="true"></div><div><p class="eyebrow">Your Toolkit</p><h1>App launcher</h1><p>Every W.A.T.A. tool currently approved for your account.</p></div></section>
     <section id="apps"><div class="section-head"><div><h2>Apps</h2><p>${ready.length ? "Tap an app to open it." : "No apps are currently available to this account."}</p></div></div>${ready.length ? `<div class="app-grid">${ready.map(appCard).join("")}</div>` : `<div class="empty-state"><strong>No apps available</strong><p>Your verified access does not currently include a launchable W.A.T.A. app.</p></div>`}</section>
     ${development.length ? `<section class="development"><div class="section-head"><div><h2>In development</h2><p>Tools being built or prepared.</p></div></div><div class="app-grid">${development.map(appCard).join("")}</div></section>` : ""}
     ${state.offlineSnapshot ? `<div class="offline-note">Showing your last verified app view. Links may require a connection.</div>` : ""}`;
@@ -247,16 +245,42 @@ function profileView() {
   const initials = display(profile.display_name, profile.email).split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
   const skills = Array.isArray(profile.skills) ? profile.skills : [];
   const interests = Array.isArray(profile.interests) ? profile.interests : [];
-  if (state.bootstrap.integration?.profile?.writable) return `<header class="view-head"><p class="eyebrow">Shared profile</p><h1>${state.profileMode === "onboarding" ? "Create your W.A.T.A. profile" : "Your W.A.T.A. profile"}</h1><p>One profile for every participating W.A.T.A. app. Roles and app access remain managed separately.</p></header><section class="profile-component-card"><div id="sharedProfileHost" aria-live="polite"></div></section>`;
-  return `<header class="view-head"><p class="eyebrow">Shared profile</p><h1>Your W.A.T.A. profile</h1><p>Your identity and profile belong to the W.A.T.A. platform, not to one individual app.</p></header>
-    <section class="profile-card"><div class="profile-summary">${avatarMarkup(profile, "profile-avatar", initials || "W")}<div><strong>${escapeHtml(display(profile.display_name, "W.A.T.A. profile"))}</strong><small>${escapeHtml(roles)}</small></div></div>
-      <div class="profile-grid profile-core">
-        <div class="profile-field"><span>Nationality</span><strong>${escapeHtml(display(profile.country, "Not added"))}</strong></div>
-        <div class="profile-field"><span>Professional skills</span><strong>${escapeHtml(skills.length ? skills.join(" · ") : "Not added")}</strong></div>
-        <div class="profile-field wide"><span>Personal interests</span><strong>${escapeHtml(interests.length ? interests.join(" · ") : "Not added")}</strong></div>
-      </div>
-      <div class="profile-integration-note"><strong>Shared editor connection pending</strong><p>The reusable in-app profile editor will open here once its versioned platform interface is available. No Toolkit-only profile store or Community redirect is used.</p></div>
-    </section>`;
+  const location = display(profile.current_location || profile.city, "Add your current location");
+  const writable = state.bootstrap.integration?.profile?.writable;
+  return `<section class="member-profile-shell">
+    <header class="member-profile-hero">
+      <div class="member-profile-contours" aria-hidden="true"></div>
+      <div class="member-profile-identity">${avatarMarkup(profile, "member-profile-avatar", initials || "W")}<div><p class="eyebrow">W.A.T.A. shared profile</p><h1>${escapeHtml(display(profile.display_name, "Complete your profile"))}</h1><p>${escapeHtml(roles)}</p></div></div>
+      <span class="profile-sync-badge">${writable ? "Shared across W.A.T.A." : "Profile connection pending"}</span>
+    </header>
+    <div class="member-profile-meta"><div><span>Nationality</span><strong>${escapeHtml(display(profile.country, "Add nationality"))}</strong></div><div><span>Current location</span><strong>${escapeHtml(location)}</strong></div><div><span>Profile status</span><strong>${isWataProfileComplete(profile) ? "Profile complete" : "Setup incomplete"}</strong></div></div>
+    <nav class="member-profile-tabs" aria-label="Profile sections"><span class="active">About</span><button type="button" data-view="trips">Trips</button><button type="button" data-view="training">Learning</button><button type="button" data-view="settings">Settings</button></nav>
+    <div class="member-profile-content">
+      <article class="profile-about-card"><p class="eyebrow">About</p><h2>Your W.A.T.A. profile</h2><p>${escapeHtml(display(profile.bio, "Add a short introduction so other W.A.T.A. members understand who you are and what you care about."))}</p></article>
+      <div class="profile-detail-grid"><article><h2>Professional skills</h2><p class="profile-helper">Things you can bring to W.A.T.A. work in the field or from home.</p><div class="profile-pills">${skills.length ? skills.map(item => `<span>${escapeHtml(item)}</span>`).join("") : `<em>No skills added yet</em>`}</div></article><article><h2>Hobbies &amp; personal interests</h2><p class="profile-helper">Things you genuinely enjoy in life.</p><div class="profile-pills interests">${interests.length ? interests.map(item => `<span>${escapeHtml(item)}</span>`).join("") : `<em>No interests added yet</em>`}</div></article></div>
+      ${writable ? `<section class="profile-editor-section"><div class="section-head"><div><h2>${state.profileMode === "onboarding" ? "Create your profile" : "Edit profile"}</h2><p>Update the same profile used by participating W.A.T.A. apps.</p></div></div><div class="profile-component-card"><div id="sharedProfileHost" aria-live="polite"></div></div></section>` : `<div class="profile-integration-note"><strong>Editing is not connected to this sign-in yet</strong><p>This page is showing the verified profile information currently returned for your account. The shared Supabase profile editor cannot safely save through the older Cloudflare/Airtable session, so no fake local profile form is being shown.</p></div>`}
+    </div>
+  </section>`;
+}
+
+function filtersView() {
+  const filters = state.bootstrap.filters || [];
+  return `<header class="view-head"><p class="eyebrow">Personal work</p><h1>My filters</h1><p>Filters connected directly to your verified W.A.T.A. identity—not every filter available to a partner organization.</p></header>${filters.length ? `<div class="personal-filter-list">${filters.map(personalFilterRow).join("")}</div><p class="scope-note">This personal view does not provide partner-wide Filter Registry access.</p>` : `<div class="empty-state"><strong>No personal filters are connected yet</strong><p>Filters you install, steward, survey, or are assigned to follow up will appear here when that relationship is returned by the shared account service. This personal view does not provide partner-wide Filter Registry access.</p></div>`}`;
+}
+
+function tripsView() {
+  const trips = state.bootstrap.trips || [];
+  return `<header class="view-head"><p class="eyebrow">Personal work</p><h1>Trips</h1><p>Your confirmed W.A.T.A. trip assignments and role on each trip.</p></header>${trips.length ? `<section class="trips-list">${trips.map(tripRow).join("")}</section>` : `<div class="empty-state"><strong>No assigned trips</strong><p>When Project Hub returns a trip assigned to your account, it will appear here.</p></div>`}`;
+}
+
+function distributionsView() {
+  const distributions = state.bootstrap.distributions || [];
+  return `<header class="view-head"><p class="eyebrow">Personal work</p><h1>Distributions</h1><p>Water-filter distributions connected to your account and approved scope.</p></header>${distributions.length ? `<div class="activity-list">${distributions.map(item => `<article><span class="activity-mark" aria-hidden="true">${escapeHtml(String(item.filter_count || "•"))}</span><div><strong>${escapeHtml(item.name || item.community || "Filter distribution")}</strong><small>${escapeHtml([item.date, item.country, item.role].filter(Boolean).join(" · ") || "Connected distribution")}</small></div><span>${escapeHtml(item.status || "Assigned")}</span></article>`).join("")}</div>` : `<div class="empty-state"><strong>No distributions connected yet</strong><p>Only distributions explicitly linked to your verified identity will appear here. This does not create broader Registry access.</p></div>`}`;
+}
+
+function trainingView() {
+  const training = state.bootstrap.training || [];
+  return `<header class="view-head"><p class="eyebrow">Learning</p><h1>Training</h1><p>Your W.A.T.A. courses, certificates, and required preparation.</p></header>${training.length ? `<div class="activity-list">${training.map(item => `<article><span class="activity-mark" aria-hidden="true">✓</span><div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.detail || item.status || "Training record")}</small></div><span>${escapeHtml(item.status || "Available")}</span></article>`).join("")}</div>` : `<div class="empty-state"><strong>No training records available</strong><p>This area is ready for account-authorized Training Hub records; nothing is inferred from app access alone.</p></div>`}`;
 }
 
 function profileRoleLabel() {
@@ -270,8 +294,8 @@ function closeProfile({ reason = "cancel" } = {}) {
     try { sessionStorage.setItem(PROFILE_PROMPT_KEY, String(state.bootstrap?.user?.id || state.bootstrap?.user?.email || "member")); } catch {}
   }
   state.profileMode = "edit";
-  currentView = "home";
-  history.replaceState(null, "", "#home");
+  currentView = "profile";
+  history.replaceState(null, "", "#profile");
   render();
 }
 
@@ -321,16 +345,16 @@ function aboutView() {
     <article><span>Why W.A.T.A. exists</span><h2>Clean water should create possibility.</h2><p>W.A.T.A. works with communities that lack reliable access to clean, safe drinking water. The work is not only about delivering filtration—it is about strengthening the people, knowledge, and leadership that keep clean water moving forward.</p></article>
     <article><span>How W.A.T.A. works</span><h2>Install. Teach. Carry forward.</h2><p>Filtration is paired with training and locally led implementation. Outside partners can bring resources and support, while community leaders build the capacity to operate, adapt, and lead the work themselves.</p></article>
     <article><span>The role of young leaders</span><h2>Local youth drive lasting change.</h2><p>W.A.T.A.’s vision puts young leaders at the center of the future: supported by partners, connected to useful tools, and never designed to remain dependent on outside organizations.</p></article>
-    <article><span>Your starting point</span><h2>The Toolkit keeps the work connected.</h2><p>This app brings W.A.T.A.’s tools, instructions, profile, organizational language, and future trip information into one place. If this is the only W.A.T.A. app someone receives, it should still help them understand the mission and find what they need.</p></article>
+    <article><span>Your starting point</span><h2>Wonderful World keeps your W.A.T.A. life connected.</h2><p>Your shared profile, personal work, learning, W.A.T.A. reference information, and approved Toolkit live together here. If this is the only W.A.T.A. app someone receives, it should still help them understand the mission and find what they need.</p></article>
   </div><article class="copy-card about-boilerplate"><span>Organization boilerplate</span><p>${escapeHtml(WATA_REFERENCE_COPY.boilerplate)}</p><button type="button" data-copy-key="boilerplate">Copy organization boilerplate</button></article>`;
 }
 
 function settingsView() {
-  return `<header class="view-head"><p class="eyebrow">Toolkit</p><h1>Settings &amp; help</h1><p>How access, updates, and offline behavior work.</p></header><div class="help-grid">
-    <article><span>01</span><h3>Your access</h3><p>The Toolkit displays the effective apps returned for your verified identity. Each destination still enforces its own grant and scope; hiding a card is never the security boundary.</p></article>
+  return `<header class="view-head"><p class="eyebrow">Wonderful World</p><h1>Settings &amp; help</h1><p>How your account, access, updates, and offline behavior work.</p></header><div class="help-grid">
+    <article><span>01</span><h3>Your access</h3><p>Wonderful World displays the personal records and apps returned for your verified identity. Each destination still enforces its own grant and scope; hiding a card is never the security boundary.</p></article>
     <article><span>02</span><h3>Instructions</h3><p>Open Instructions from the menu to reach each app’s current PDF and share-ready PNG.</p></article>
-    <article><span>03</span><h3>Offline use</h3><p>The Toolkit remembers your last verified launcher view for up to seven days. Opening external apps and refreshing access still require a connection.</p></article>
-    <article><span>04</span><h3>Shared identity</h3><p>Supabase is the target W.A.T.A. identity, profile, grant, and scope authority. The currently deployed Toolkit still uses the transitional Cloudflare Access and legacy bootstrap path until the coordinated migration is accepted.</p></article>
+    <article><span>03</span><h3>Offline use</h3><p>Wonderful World remembers your last verified account view for up to seven days. Opening external apps and refreshing access still require a connection.</p></article>
+    <article><span>04</span><h3>Shared identity</h3><p>Supabase is the target W.A.T.A. identity, profile, grant, and scope authority. The current sign-in still uses the transitional Cloudflare Access and legacy bootstrap path until the coordinated migration is accepted.</p></article>
   </div>`;
 }
 
@@ -352,7 +376,7 @@ function render() {
   document.body.classList.toggle("entry-mode", entryMode);
   if (state.loading && !state.bootstrap) app.innerHTML = loadingView();
   else if (entryMode) app.innerHTML = errorView();
-  else app.innerHTML = currentView === "profile" ? profileView() : currentView === "mission" ? missionView() : currentView === "about" ? aboutView() : currentView === "settings" ? settingsView() : homeView();
+  else app.innerHTML = currentView === "profile" ? profileView() : currentView === "toolkit" ? toolkitView() : currentView === "filters" ? filtersView() : currentView === "trips" ? tripsView() : currentView === "distributions" ? distributionsView() : currentView === "training" ? trainingView() : currentView === "mission" ? missionView() : currentView === "about" ? aboutView() : currentView === "settings" ? settingsView() : profileView();
   syncNavigation();
   translateDom(document);
   syncLanguageControl();
@@ -361,7 +385,7 @@ function render() {
 }
 
 function beginProfileOnboardingIfNeeded(bootstrap) {
-  if (!bootstrap?.integration?.profile?.writable || isWataProfileComplete(bootstrap.profile) || currentView !== "home") return;
+  if (!bootstrap?.integration?.profile?.writable || isWataProfileComplete(bootstrap.profile) || currentView !== "profile") return;
   let deferred = false;
   try { deferred = sessionStorage.getItem(PROFILE_PROMPT_KEY) === String(bootstrap.user?.id || bootstrap.user?.email || "member"); } catch {}
   if (deferred) return;
@@ -384,7 +408,14 @@ function syncNavigation() {
   const initials = display(profile.display_name, profile.email).split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
   const roles = bootstrap.roles.map(role => translateText(role.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase()), currentLanguage)).join(" · ") || translateText("Member", currentLanguage);
   document.querySelector("#menuProfile").innerHTML = `${avatarMarkup(profile, "avatar", initials || "W")}<span><strong>${escapeHtml(display(profile.display_name, "W.A.T.A. member"))}</strong><small>${escapeHtml(roles)}</small></span>`;
-  document.querySelector("#quickLinks").innerHTML = bootstrap.apps.map(item => isAppLaunchable(item) ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer"><span>${iconFor(item)}</span>${escapeHtml(item.name)}</a>` : `<span class="disabled"><span>${iconFor(item)}</span>${escapeHtml(item.name)}</span>`).join("");
+  document.querySelector("#quickLinks").innerHTML = [
+    ["profile", "Profile", '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'],
+    ["filters", "My filters", '<path d="M12 2.8c3.2 4.4 6.1 7.8 6.1 11.4a6.1 6.1 0 1 1-12.2 0C5.9 10.6 8.8 7.2 12 2.8Z"/>'],
+    ["trips", "Trips", '<path d="M4 19h16M6 16l2-10h8l2 10M9 9h6"/>'],
+    ["distributions", "Distributions", '<path d="M4 6h16v12H4zM8 10h8M8 14h5"/>'],
+    ["training", "Training", '<path d="m3 7 9-4 9 4-9 4-9-4Z"/><path d="M7 9.5V15c3 2 7 2 10 0V9.5"/>'],
+    ["toolkit", "Toolkit", '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>']
+  ].map(([view, label, paths]) => `<button type="button" data-view="${view}" ${view === currentView ? 'aria-current="page"' : ""}><span><svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg></span>${label}</button>`).join("");
   document.querySelector("#menuGuideList").innerHTML = bootstrap.apps.map(item => { const guides = guideList(item); return `<div><strong>${escapeHtml(item.name)}</strong><span>${guides.length ? guides.map(guide => `<a href="${escapeHtml(guide.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(guide.format)}</a>`).join("") : "Coming soon"}</span></div>`; }).join("");
   updateConnection();
 }

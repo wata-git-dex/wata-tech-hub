@@ -94,3 +94,40 @@ test("normalizes only approved personal-filter relationship fields", () => {
   assert.equal("household_name" in result.filters[0], false);
   assert.equal("internal_notes" in result.filters[0], false);
 });
+
+test("normalizes only approved person-scoped distribution and training fields", () => {
+  const result = normalizeBootstrap({
+    user: { id: "member-2" },
+    distributions: [{
+      id: "distribution-1",
+      distribution_name: "Lake Atitlán follow-up",
+      community_name: "Example Community",
+      country: "Guatemala",
+      distribution_date: "2026-10-12",
+      relationship_label: "Surveyor",
+      status: "Assigned",
+      filter_count: 12,
+      internal_notes: "Do not expose",
+      budget: 5000
+    }],
+    training: [{
+      course_id: "course-1",
+      course_name: "Safe filter setup",
+      completed_at: "2026-09-10",
+      private_score: 82
+    }]
+  });
+  assert.deepEqual(result.distributions, [{
+    id: "distribution-1",
+    name: "Lake Atitlán follow-up",
+    community: "Example Community",
+    country: "Guatemala",
+    date: "2026-10-12",
+    role: "Surveyor",
+    status: "Assigned",
+    filter_count: 12
+  }]);
+  assert.deepEqual(result.training, [{ id: "course-1", name: "Safe filter setup", detail: "2026-09-10", status: "Complete" }]);
+  assert.equal("internal_notes" in result.distributions[0], false);
+  assert.equal("private_score" in result.training[0], false);
+});

@@ -1,6 +1,6 @@
 # W.A.T.A. Wonderful World
 
-The primary member-facing W.A.T.A. account, shared-profile, and personal Toolkit surface. Community remains a separate optional application. The Toolkit launcher is one function inside Wonderful World, not a separate identity system.
+The primary everyday-member W.A.T.A. account, shared-profile, and personal command center. Community remains a separate optional application. The Toolkit launcher is one function inside Wonderful World, not a separate identity system or the main navigation model.
 
 The 2026-09-09 navigation cohesion pass follows `../../docs/WATA-NAVIGATION-SYSTEM.md`: 44 px rounded-square header utilities, a compact flag-and-language popover, a grouped right drawer, synchronized language state, collapsed settings panels, keyboard/scrim/close behavior, and a separated sign-out action. Toolkit has no implemented notifications feed, so it intentionally omits the bell rather than presenting fake unread data.
 
@@ -23,7 +23,7 @@ The static site and Pages advanced-mode Worker are written to `dist/`. Cloudflar
 
 ## Shared-data integration boundary
 
-`data-adapter.js` is the only UI-facing identity/data boundary. The interface calls `getSession()`, `signIn()`, `signOut()`, and `getBootstrap()` there. Today, `getBootstrap()` preserves the existing `/api/bootstrap` request and normalizes the current Airtable/Worker payload into the shared response shape (`user`, `profile`, `roles`, `apps`, `trips`, and an optional person-scoped `filters` list).
+`data-adapter.js` is the only UI-facing identity/data boundary. The interface calls `getSession()`, `signIn()`, `signOut()`, and `getBootstrap()` there. Today, `getBootstrap()` preserves the existing `/api/bootstrap` request and normalizes the current Airtable/Worker payload into the shared response shape (`user`, `profile`, `roles`, `apps`, `trips`, and optional person-scoped `filters`, `distributions`, and `training` lists).
 
 The branded entry screen deliberately continues to the existing secure verification flow. It does not copy Community's origin-local Supabase session or pretend the future server-managed cross-domain session is already deployed. Google and W.A.T.A. credentials may appear as separate methods only when the platform session service can bind both to the same canonical identity.
 
@@ -31,7 +31,7 @@ The independent build vendors the immutable shared-profile component at `vendor/
 
 `filters` is the **My Filters** relationship view, not a Registry grant. The adapter retains only stable filter identity, location summary, status, and verified relationship type. Full Filter Registry access still requires its own app grant and operational scopes.
 
-The W.A.T.A. platform owns one reusable shared-profile component; Toolkit must host that component in place and must not create a Toolkit-only profile store or require a visit to Community. The current read-only profile surface remains an integration gap until the coordinated component adapter is accepted. Follow `../../docs/WATA-SHARED-PROFILE-SYSTEM.md` before changing that boundary.
+The W.A.T.A. platform owns one reusable shared-profile component; Wonderful World hosts that component in place and must not create a Toolkit-only profile store or require a visit to Community. The profile is the default view; My Filters, Trips, Distributions, Training, and Toolkit are person-centered destinations around it. Profile editing is enabled only when the bootstrap declares safe same-origin shared-profile endpoints. Until the coordinated Supabase session adapter is accepted, the legacy session receives a transparent read-only profile rather than a fake local editor. Follow `../../docs/WATA-SHARED-PROFILE-SYSTEM.md` before changing that boundary.
 
 ## Deployment boundary
 

@@ -16,16 +16,18 @@ test("header uses the shared Toolkit language and menu controls", async () => {
   assert.doesNotMatch(html, /id="notificationsButton"/);
 });
 
-test("drawer preserves contextual Toolkit content and shared settings anatomy", async () => {
+test("drawer makes the shared profile and personal work the primary navigation", async () => {
   const html = await source("index.html");
   const app = await source("app.js");
-  assert.match(html, /menu-section-label">Toolkit/);
+  assert.match(html, /menu-section-label">Your world/);
+  assert.match(html, /data-view="profile"[\s\S]*data-view="filters"[\s\S]*data-view="trips"[\s\S]*data-view="distributions"[\s\S]*data-view="training"/);
+  assert.match(html, /menu-section-label">Toolkit[\s\S]*data-view="toolkit"/);
   assert.match(html, /Mission, Vision &amp; Goals/);
-  assert.match(html, /W\.A\.T\.A\. Profile/);
+  assert.match(html, /Your shared W\.A\.T\.A\. identity/);
   assert.match(html, /id="appearancePanel" hidden/);
   assert.match(html, /id="drawerLanguagePanel"[\s\S]*hidden/);
   assert.match(html, /id="signOutButton"/);
-  assert.match(html, /<span>W\.A\.T\.A\. Wonderful World<\/span><strong>v1\.3\.0<\/strong>/);
+  assert.match(html, /<span>W\.A\.T\.A\. Wonderful World<\/span><strong>v1\.4\.0<\/strong>/);
   assert.match(app, /dataAdapter\.signOut\(\)/);
   assert.match(app, /syncCurrentDestination/);
   assert.match(app, /drawerReturnFocus = menuButton/);
@@ -34,9 +36,9 @@ test("drawer preserves contextual Toolkit content and shared settings anatomy", 
 
 test("service worker precaches the revised navigation assets", async () => {
   const worker = await source("sw.js");
-  assert.match(worker, /wata-wonderful-world-v31-entry/);
-  assert.match(worker, /styles\.css\?v=45/);
-  assert.match(worker, /app\.js\?v=40/);
+  assert.match(worker, /wata-wonderful-world-v32-profile-command-center/);
+  assert.match(worker, /styles\.css\?v=46/);
+  assert.match(worker, /app\.js\?v=41/);
   assert.match(worker, /lib\/wata-profile\.js\?v=1\.1\.0/);
 });
 
@@ -66,6 +68,16 @@ test("Wonderful World hosts the immutable shared profile component behind the pl
   assert.match(app, /localStorage\.removeItem\(SNAPSHOT_KEY\)/);
   assert.match(build, /vendor\/shared-profile\/1\.1\.0\/wata-profile\.js/);
   assert.doesNotMatch(app, /community\.cleanwata\.org\/#profile/);
+});
+
+test("Wonderful World opens on the member profile and keeps apps inside Toolkit", async () => {
+  const app = await source("app.js");
+  assert.match(app, /location\.hash\.slice\(1\) \|\| "profile"/);
+  assert.match(app, /if \(currentView === "home"\) currentView = "profile"/);
+  assert.match(app, /function profileView\(\)/);
+  assert.match(app, /function toolkitView\(\)/);
+  assert.match(app, /Profile[\s\S]*My filters[\s\S]*Trips[\s\S]*Distributions[\s\S]*Training[\s\S]*Toolkit/);
+  assert.doesNotMatch(app, /quickLinks\.innerHTML = bootstrap\.apps/);
 });
 
 test("phone safe areas cover portrait and landscape without stacked inset padding", async () => {
