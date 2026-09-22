@@ -40,7 +40,7 @@ function localEndpoint(value) {
 
 function normalizeProfile(body, session) {
   const source = body.profile || session.profile || {};
-  const displayName = string(source.display_name || source.displayName || session.name);
+  const displayName = string(source.display_name || source.displayName || source.name || session.name);
   const parts = displayName.split(/\s+/).filter(Boolean);
   return {
     id: string(source.id),

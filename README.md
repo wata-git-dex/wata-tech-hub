@@ -27,7 +27,7 @@ The static site and Pages advanced-mode Worker are written to `dist/`. Cloudflar
 
 The branded entry screen supports Google and W.A.T.A. credentials against the same canonical identity. The same local session key and profile adapter are used by Community and Wonderful World, but browser storage is origin-scoped: this release does **not** claim completed cross-domain SSO. A server-managed handoff remains separate platform work.
 
-The independent build vendors the immutable shared-profile component at `vendor/shared-profile/1.1.0/wata-profile.js`. It is an exact copy of the platform release (SHA-256 `552b5fbe9bf82ff1215e5050f07a5038b55c4c8348d415b593b5909c31ad39b2`), so GitHub and Cloudflare builds do not depend on an untracked parent workspace while the platform release remains the maintained source.
+The independent build vendors the immutable shared-profile v1.2.0 release at `vendor/shared-profile/1.2.0/`: the rich editor, base helpers and external shadow-root stylesheet. It is an exact copy of the platform release, so independent builds do not depend on the parent workspace. The shared component owns editing, photo selection, travel-map selection, goals, contact and preferences. No host-specific profile store is created.
 
 `filters` is the **My Filters** relationship view, not a Registry grant. The adapter retains only stable filter identity, location summary, status, and verified relationship type. Full Filter Registry access still requires its own app grant and operational scopes.
 
@@ -37,7 +37,7 @@ The W.A.T.A. platform owns one reusable shared-profile component; Wonderful Worl
 
 This repository owns only the Toolkit frontend, PWA, icons, instructions, and gateway. `/api/` uses a service binding named `PORTAL` to the proven authorization/data Worker, `wata-partner-portals`. Registry frontend code and Registry PWA assets are not deployed from this repository.
 
-The production hostname must allow the static branded shell to load so Supabase Auth can run there; `/api/shared/*` remains JWT-protected by the shared API. `wata.cleanwata.org` is the canonical person-centered entry point. The former `app.cleanwata.org` address redirects there. The Toolkit hostname remains available behind its legacy Access boundary so existing installed PWAs and bookmarks can continue to work during the transition.
+The production hostname allows the static branded shell to load so Supabase Auth can run there; `/api/shared/*` remains JWT-protected by the shared API. `wata.cleanwata.org` is the canonical entry point. The former `app.cleanwata.org` address redirects there. Toolkit root and index requests also redirect there after any legacy Access challenge; legacy assets remain available. A first visit to the new origin may require Google sign-in again because browser sessions are origin-specific.
 
 The Toolkit shows one `Filter Registry` app. `Partner Portal` is the partner-scoped experience inside that Registry, not a separate app or deployment.
 

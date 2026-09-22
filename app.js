@@ -1,6 +1,6 @@
 import { dataAdapter } from "./data-adapter.js";
 import { languageLocale, normalizeLanguage, translateText } from "./i18n.js";
-import { isWataProfileComplete, mountWataProfile, WATA_PROFILE_COMPONENT_VERSION } from "./lib/wata-profile.js?v=1.1.0";
+import { isWataProfileComplete, mountWataProfile, WATA_PROFILE_COMPONENT_VERSION } from "./lib/wata-profile-rich.js?v=1.2.0";
 
 const SNAPSHOT_KEY = "wata-tech-hub-bootstrap-v2";
 const PROFILE_PROMPT_KEY = "wata.toolkit.profile-prompt-deferred.v1";
@@ -311,6 +311,7 @@ function profileAboutPanel(profile, skills, interests, writable) {
 }
 
 function profileView() {
+  if (state.bootstrap.integration?.profile?.writable) return `<section class="member-profile-editor" aria-label="Your shared profile"><div id="sharedProfileHost"></div></section>`;
   const profile = state.bootstrap.profile;
   const roles = state.bootstrap.roles.map(role => translateText(role.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase()), currentLanguage)).join(" · ") || translateText("Member", currentLanguage);
   const initials = display(profile.display_name, profile.email).split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
@@ -387,6 +388,12 @@ function mountSharedProfileSurface() {
     profile: bootstrap.profile,
     roleLabel: profileRoleLabel(),
     online: () => navigator.onLine,
+    onNavigate(view) {
+      if (profileMount?.isDirty?.() && !confirm("Leave without saving your profile changes?")) return;
+      currentView = view;
+      history.replaceState(null, "", `#${view}`);
+      render();
+    },
     adapter: {
       loadProfile: ({ signal }) => dataAdapter.loadProfile(bootstrap, { signal }),
       ...(bootstrap.integration.profile.avatar_writable ? { uploadAvatar: async (file, { signal }) => {
@@ -396,17 +403,19 @@ function mountSharedProfileSurface() {
       saveProfile: async (patch, { signal }) => {
         const current = bootstrap.profile || {};
         const avatarRef = pendingAvatar?.avatar_url === patch.avatar_url ? pendingAvatar.avatar_ref : (patch.avatar_url ? current.avatar_ref : null);
-        const result = await dataAdapter.updateProfile(bootstrap, { ...patch, avatar_url: avatarRef }, { signal, completeOnboarding: state.profileMode === "onboarding" });
+        const result = await dataAdapter.updateProfile(bootstrap, { ...patch, avatar_url: avatarRef }, { signal, completeOnboarding: state.profileMode === "onboarding" || !isWataProfileComplete(current) });
         pendingAvatar = null;
         return result;
       }
     },
     onSaved(profile) {
       bootstrap.profile = { ...bootstrap.profile, ...profile, display_name: profile.display_name || profile.name };
+      if (profile.suite_theme) setAppearance("theme", profile.suite_theme);
+      if (profile.suite_accent) setAppearance("accent", profile.suite_accent);
       localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ savedAt: Date.now(), bootstrap }));
       try { sessionStorage.removeItem(PROFILE_PROMPT_KEY); } catch {}
       if (state.profileMode === "onboarding") closeProfile({ reason: "saved" });
-      else render();
+      else { document.querySelector("#drawerProfileName")?.replaceChildren(document.createTextNode(bootstrap.profile.display_name)); }
     },
     onClose: closeProfile
   });
@@ -637,7 +646,7 @@ document.addEventListener("click", async event => {
   if (event.target.closest("#instructionsButton")) return toggleDrawerPanel("instructionsButton", "menuGuideList");
   if (event.target.closest("#appearanceButton")) return toggleDrawerPanel("appearanceButton", "appearancePanel");
   if (event.target.closest("#drawerLanguageButton")) return toggleDrawerPanel("drawerLanguageButton", "drawerLanguagePanel");
-  if (event.target.closest("#signOutButton")) { openMenu(false); profileMount?.destroy(); localStorage.removeItem(SNAPSHOT_KEY); state.bootstrap = null; return dataAdapter.signOut(); }
+  if (event.target.closest("#signOutButton")) { openMenu(false); profileMount?.destroy(); localStorage.removeItem(SNAPSHOT_KEY); sessionStorage.removeItem(PROFILE_PROMPT_KEY); state.bootstrap = null; return dataAdapter.signOut(); }
   const copy = event.target.closest("[data-copy-key]"); if (copy) { try { await navigator.clipboard.writeText(translateText(WATA_REFERENCE_COPY[copy.dataset.copyKey], currentLanguage)); copy.textContent = translateText("Copied", currentLanguage); setTimeout(() => { copy.textContent = translateText("Copy again", currentLanguage); }, 1200); } catch { copy.textContent = translateText("Copy unavailable", currentLanguage); } return; }
   const appTarget = event.target.closest("[data-app-url]"); if (appTarget) { window.open(appTarget.dataset.appUrl, "_blank", "noopener,noreferrer"); return; }
   const profileTabTarget = event.target.closest("[data-profile-tab]"); if (profileTabTarget) { profileTab = profileTabTarget.dataset.profileTab; profileTravelStatus = ""; if (profileTab === "travel") loadProfileMap(); render(); return; }
@@ -663,7 +672,7 @@ document.addEventListener("click", async event => {
     finally { state.saving = false; render(); }
     return;
   }
-  const view = event.target.closest("[data-view]"); if (view) { currentView = view.dataset.view; state.profileMode = view.dataset.profileMode || "edit"; history.replaceState(null, "", `#${currentView}`); openMenu(false); render(); scrollTo({ top: 0, behavior: "smooth" }); return; }
+  const view = event.target.closest("[data-view]"); if (view) { if (profileMount?.isDirty?.() && !confirm("Leave without saving your profile changes?")) return; currentView = view.dataset.view; state.profileMode = view.dataset.profileMode || "edit"; history.replaceState(null, "", `#${currentView}`); openMenu(false); render(); scrollTo({ top: 0, behavior: "smooth" }); return; }
   if (event.target.closest("#googleSignInButton")) {
     try { return dataAdapter.signIn("google"); }
     catch (error) { const output = document.querySelector("#authFormError"); if (output) { output.hidden = false; output.textContent = error.message; } return; }

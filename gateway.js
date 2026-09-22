@@ -129,7 +129,7 @@ async function applyHubCatalog(response) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.hostname === "app.cleanwata.org") {
+    if (url.hostname === "app.cleanwata.org" || (url.hostname === "toolkit.cleanwata.org" && (url.pathname === "/" || url.pathname === "/index.html"))) {
       url.hostname = "wata.cleanwata.org";
       return Response.redirect(url.toString(), 308);
     }
