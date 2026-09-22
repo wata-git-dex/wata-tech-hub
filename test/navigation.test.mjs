@@ -27,7 +27,7 @@ test("drawer makes the shared profile and personal work the primary navigation",
   assert.match(html, /id="appearancePanel" hidden/);
   assert.match(html, /id="drawerLanguagePanel"[\s\S]*hidden/);
   assert.match(html, /id="signOutButton"/);
-  assert.match(html, /<span>W\.A\.T\.A\. Wonderful World<\/span><strong>v1\.5\.1<\/strong>/);
+  assert.match(html, /<span>W\.A\.T\.A\. Wonderful World<\/span><strong>v1\.5\.2<\/strong>/);
   assert.match(app, /dataAdapter\.signOut\(\)/);
   assert.match(app, /syncCurrentDestination/);
   assert.match(app, /drawerReturnFocus = menuButton/);
@@ -36,9 +36,9 @@ test("drawer makes the shared profile and personal work the primary navigation",
 
 test("service worker precaches the revised navigation assets", async () => {
   const worker = await source("sw.js");
-  assert.match(worker, /wata-wonderful-world-v34-responsive-entry/);
-  assert.match(worker, /styles\.css\?v=47/);
-  assert.match(worker, /app\.js\?v=43/);
+  assert.match(worker, /wata-wonderful-world-v35-welcome/);
+  assert.match(worker, /styles\.css\?v=48/);
+  assert.match(worker, /app\.js\?v=44/);
   assert.match(worker, /lib\/wata-profile\.js\?v=1\.1\.0/);
 });
 
@@ -47,10 +47,10 @@ test("Wonderful World owns the branded shared-identity sign-in surface", async (
   const adapter = await source("data-adapter.js");
   const html = await source("index.html");
   assert.match(html, /<title>W\.A\.T\.A\. Wonderful World<\/title>/);
-  assert.match(app, /One profile\.<br>Every approved tool\./);
+  assert.match(app, /Your W\.A\.T\.A\.<br>world\./);
   assert.match(app, /Sign in with Google/);
-  assert.match(app, /Sign in with W\.A\.T\.A\./);
-  assert.match(app, /Signing in verifies your identity/);
+  assert.doesNotMatch(app, /Sign in with W\.A\.T\.A\./);
+  assert.match(app, /Your available tools depend on your account access/);
   assert.match(adapter, /SupabaseAuth/);
   assert.match(adapter, /\/api\/shared\/me/);
 });

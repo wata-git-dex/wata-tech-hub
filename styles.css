@@ -303,6 +303,20 @@ body.entry-mode{background:#eef4fa}.entry-mode .shell{display:block}.entry-mode 
   .personal-filter-row{grid-template-columns:42px minmax(0,1fr) auto;gap:10px}.filter-status{display:none}.filter-relationship{max-width:112px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.entry-mode .content{padding:0;background:#eef4fa}.entry-shell{display:block;min-height:100dvh;border:0;border-radius:0;box-shadow:none}.entry-visual{min-height:355px;padding:calc(24px + var(--safe-top)) 22px 58px}.entry-brand img{width:54px;height:54px;border-radius:15px}.entry-brand strong{font-size:21px}.entry-story{margin:42px 0 0}.entry-story h2{font-size:37px}.entry-story>p{font-size:13px}.entry-story ul{display:none}.entry-signature{margin-top:32px}.entry-panel{position:relative;z-index:2;margin:-30px 14px calc(20px + var(--safe-bottom));padding:28px 20px 24px;border-radius:24px}.entry-panel h1{font-size:36px}.entry-intro{font-size:14px}
 }
 
+/* Wonderful World welcome: visual introductions and one clear sign-in action. */
+.entry-shell{min-height:620px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.entry-story{margin:40px 0;max-width:440px}
+.entry-story h2{line-height:1.06;letter-spacing:-.04em}
+.entry-features{display:grid;gap:12px;margin-top:28px}
+.entry-feature{display:flex;align-items:center;gap:16px;padding:14px 16px;border:1px solid rgba(255,255,255,.2);border-radius:16px;background:rgba(8,42,91,.2)}
+.entry-feature svg{width:28px;height:28px;flex:0 0 28px;fill:none;stroke:#d1f7ff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.entry-feature h3{margin:0;color:#fff;font-size:16px;letter-spacing:0}
+.entry-feature p{margin:3px 0 0;color:#e4f2ff;font-size:13px;line-height:1.5}
+.entry-access-caption{margin:8px 0 24px;color:#506988;font-size:13px;line-height:1.6}
+.entry-panel .entry-help{padding-top:20px;border-top:1px solid #cfdeeb;font-size:12px;text-align:left}
+.entry-panel .entry-form-error{margin:8px 0;font-size:14px}
+@media(max-width:700px){.entry-story{margin:28px 0 12px}.entry-visual{min-height:0;padding-bottom:48px}.entry-features{gap:8px;margin-top:20px}.entry-feature{padding:10px 12px;gap:12px}.entry-feature h3{font-size:14px}.entry-feature p{font-size:12px}.entry-feature svg{width:24px;height:24px;flex-basis:24px}.entry-signature{margin-top:14px}.entry-story h2{font-size:36px}}
+
 /* 2026-09-09 shared W.A.T.A. navigation cohesion. */
 body.drawer-open{overflow:hidden}
 .language-button,.menu-button{width:44px;height:44px;flex:0 0 44px;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--panel) 86%,transparent);box-shadow:none}
