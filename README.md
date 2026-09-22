@@ -6,8 +6,8 @@ The 2026-09-09 navigation cohesion pass follows `../../docs/WATA-NAVIGATION-SYST
 
 The 2026-09-11 safe-area candidate uses `viewport-fit=cover` plus one four-edge inset contract for the sticky header, landscape sidebar, content/footer edges, and full-height drawer. Synthetic portrait/landscape browser acceptance is recorded in `../../docs/WATA-SAFE-AREA-RELEASE-GATE.md`; physical iPhone Safari and installed-PWA acceptance remain pending and must not be inferred from CSS checks.
 
-- Production: `https://app.cleanwata.org`
-- Compatibility addresses: `https://toolkit.cleanwata.org`, `https://wata.cleanwata.org`
+- Production: `https://wata.cleanwata.org`
+- Compatibility addresses: `https://app.cleanwata.org`, `https://toolkit.cleanwata.org`
 - Preview: `https://wata-tech-hub.pages.dev`
 - Cloudflare project: `wata-tech-hub`
 - Access directory: Airtable `🔐 App Access`
@@ -31,13 +31,13 @@ The independent build vendors the immutable shared-profile component at `vendor/
 
 `filters` is the **My Filters** relationship view, not a Registry grant. The adapter retains only stable filter identity, location summary, status, and verified relationship type. Full Filter Registry access still requires its own app grant and operational scopes.
 
-The W.A.T.A. platform owns one reusable shared-profile component; Wonderful World hosts that component in place and does not create a Toolkit-only profile store or require a visit to Community. The profile is the default view; My Filters, Trips, Distributions, Training, and Toolkit are person-centered destinations around it. The Travel tab saves personal country history as ISO country codes in the canonical profile system and renders the accepted searchable/flagged world-map interaction. It is explicitly separate from the W.A.T.A. Impact Map and verified field activity.
+The W.A.T.A. platform owns one reusable shared-profile component; Wonderful World hosts that component in place and does not create a Toolkit-only profile store or require a visit to Community. Desktop opens on the profile command center, while phone-sized and touch-first devices open on the Toolkit for faster app access. Explicit `#profile` and `#toolkit` links are stable, and incomplete writable profiles still receive the profile onboarding flow before returning to their device-preferred start view. The Travel tab saves personal country history as ISO country codes in the canonical profile system and renders the accepted searchable/flagged world-map interaction. It is explicitly separate from the W.A.T.A. Impact Map and verified field activity.
 
 ## Deployment boundary
 
 This repository owns only the Toolkit frontend, PWA, icons, instructions, and gateway. `/api/` uses a service binding named `PORTAL` to the proven authorization/data Worker, `wata-partner-portals`. Registry frontend code and Registry PWA assets are not deployed from this repository.
 
-The production hostname must allow the static branded shell to load so Supabase Auth can run there; `/api/shared/*` remains JWT-protected by the shared API. Compatibility hostnames may retain the older Access boundary during rollout. The former `wata.cleanwata.org` address redirects to the canonical app address. The Toolkit hostname remains available so existing installed PWAs and bookmarks continue to work while users transition to the Wonderful World entry point.
+The production hostname must allow the static branded shell to load so Supabase Auth can run there; `/api/shared/*` remains JWT-protected by the shared API. `wata.cleanwata.org` is the canonical person-centered entry point. The former `app.cleanwata.org` address redirects there. The Toolkit hostname remains available behind its legacy Access boundary so existing installed PWAs and bookmarks can continue to work during the transition.
 
 The Toolkit shows one `Filter Registry` app. `Partner Portal` is the partner-scoped experience inside that Registry, not a separate app or deployment.
 

@@ -28,8 +28,10 @@ const PROFILE_HINTS = Object.freeze({
 const COUNTRY_CODES = "AF AL DZ AD AO AG AR AM AU AT AZ BS BH BD BB BY BE BZ BJ BT BO BA BW BR BN BG BF BI CV KH CM CA CF TD CL CN CO KM CD CG CR CI HR CU CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FJ FI FR GA GM GE DE GH GR GD GT GN GW GY HT HN HU IS IN ID IR IQ IE IL IT JM JP JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MG MW MY MV ML MT MH MR MU MX FM MD MC MN ME MA MZ MM NA NR NP NL NZ NI NE NG MK NO OM PK PW PS PA PG PY PE PH PL PT QA RO RU RW KN LC VC WS SM ST SA SN RS SC SL SG SK SI SB SO ZA SS ES LK SD SR SE CH SY TW TJ TZ TH TL TG TO TT TN TR TM TV UG UA AE GB US UY UZ VU VA VE VN YE ZM ZW".split(" ");
 
 const state = { loading: true, error: null, bootstrap: null, offlineSnapshot: false, saving: false, profileMode: "edit" };
-let currentView = location.hash.slice(1) || "profile";
-if (currentView === "home") currentView = "profile";
+const preferredStartView = () => matchMedia("(max-width: 700px), (hover: none) and (pointer: coarse)").matches ? "toolkit" : "profile";
+const initialRoute = location.hash.slice(1);
+let currentView = !initialRoute || initialRoute === "home" ? preferredStartView() : initialRoute;
+let profileReturnView = currentView;
 let currentLanguage = normalizeLanguage(localStorage.getItem("wata-language") || navigator.language);
 const app = document.querySelector("#app");
 const drawer = document.querySelector("#menuDrawer");
@@ -364,12 +366,13 @@ function profileRoleLabel() {
 }
 
 function closeProfile({ reason = "cancel" } = {}) {
+  const wasOnboarding = state.profileMode === "onboarding";
   if (state.profileMode === "onboarding" && reason !== "saved") {
     try { sessionStorage.setItem(PROFILE_PROMPT_KEY, String(state.bootstrap?.user?.id || state.bootstrap?.user?.email || "member")); } catch {}
   }
   state.profileMode = "edit";
-  currentView = "profile";
-  history.replaceState(null, "", "#profile");
+  currentView = wasOnboarding ? profileReturnView : "profile";
+  history.replaceState(null, "", `#${currentView}`);
   render();
 }
 
@@ -428,7 +431,7 @@ function settingsView() {
     <article><span>01</span><h3>Your access</h3><p>Wonderful World displays the personal records and apps returned for your verified identity. Each destination still enforces its own grant and scope; hiding a card is never the security boundary.</p></article>
     <article><span>02</span><h3>Instructions</h3><p>Open Instructions from the menu to reach each app’s current PDF and share-ready PNG.</p></article>
     <article><span>03</span><h3>Offline use</h3><p>Wonderful World remembers your last verified account view for up to seven days. Opening external apps and refreshing access still require a connection.</p></article>
-    <article><span>04</span><h3>Shared identity</h3><p>Supabase is the target W.A.T.A. identity, profile, grant, and scope authority. The current sign-in still uses the transitional Cloudflare Access and legacy bootstrap path until the coordinated migration is accepted.</p></article>
+    <article><span>04</span><h3>Shared identity</h3><p>Supabase Auth and one canonical profile power this sign-in. App grants and program scopes remain server-enforced; the legacy Toolkit hostname keeps its existing Access boundary during the transition.</p></article>
   </div>`;
 }
 
@@ -463,10 +466,11 @@ function render() {
 }
 
 function beginProfileOnboardingIfNeeded(bootstrap) {
-  if (!bootstrap?.integration?.profile?.writable || isWataProfileComplete(bootstrap.profile) || currentView !== "profile") return;
+  if (!bootstrap?.integration?.profile?.writable || isWataProfileComplete(bootstrap.profile)) return;
   let deferred = false;
   try { deferred = sessionStorage.getItem(PROFILE_PROMPT_KEY) === String(bootstrap.user?.id || bootstrap.user?.email || "member"); } catch {}
   if (deferred) return;
+  profileReturnView = currentView;
   state.profileMode = "onboarding";
   currentView = "profile";
   history.replaceState(null, "", "#profile");

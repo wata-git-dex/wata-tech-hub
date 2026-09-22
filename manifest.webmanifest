@@ -3,11 +3,25 @@
   "name": "W.A.T.A. Wonderful World",
   "short_name": "W.A.T.A.",
   "description": "Your shared W.A.T.A. profile, authorized toolkit, filters, trips, and guidance in one place.",
-  "start_url": "/",
+  "start_url": "/#toolkit",
   "scope": "/",
   "display": "standalone",
   "background_color": "#070c16",
   "theme_color": "#070c16",
+  "shortcuts": [
+    {
+      "name": "Toolkit",
+      "short_name": "Toolkit",
+      "url": "/#toolkit",
+      "icons": [{ "src": "/assets/tech-hub/icon-192-v6.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Profile",
+      "short_name": "Profile",
+      "url": "/#profile",
+      "icons": [{ "src": "/assets/tech-hub/icon-192-v6.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
   "icons": [
     {
       "src": "/assets/tech-hub/icon-192-v6.png",

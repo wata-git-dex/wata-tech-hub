@@ -1,8 +1,8 @@
-const VERSION = "wata-wonderful-world-v33-shared-profile-travel";
+const VERSION = "wata-wonderful-world-v34-responsive-entry";
 const APP_SHELL = ["./design-polish.css?v=1",
-  "/", "/index.html", "/styles.css?v=47", "/app.js?v=42", "/auth.js", "/config.js", "/i18n.js", "/data-adapter.js", "/theme-init.js", "/lib/wata-profile.js?v=1.1.0",
+  "/", "/index.html", "/styles.css?v=47", "/app.js?v=43", "/auth.js", "/config.js", "/i18n.js", "/data-adapter.js", "/theme-init.js", "/lib/wata-profile.js?v=1.1.0",
   "/assets/tech-hub/brand-logo-v3.png",
-  "/manifest.webmanifest?v=2", "/favicon-32.png?v=6", "/apple-touch-icon.png?v=6",
+  "/manifest.webmanifest?v=3", "/favicon-32.png?v=6", "/apple-touch-icon.png?v=6",
   "/assets/tech-hub/icon-192-v6.png", "/assets/tech-hub/icon-512-v6.png",
   "/assets/tech-hub/icon-512-maskable-v6.png",
   "/assets/wata-logo.png", "/assets/topography.svg", "/assets/topography-map.jpg", "/assets/profile/countries.geojson",

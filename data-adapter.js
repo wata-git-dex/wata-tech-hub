@@ -33,8 +33,8 @@ function localEndpoint(value) {
   const path = string(value);
   if (!path || !path.startsWith("/") || path.startsWith("//")) return "";
   try {
-    const url = new URL(path, "https://app.cleanwata.org");
-    return url.origin === "https://app.cleanwata.org" ? `${url.pathname}${url.search}` : "";
+    const url = new URL(path, "https://wata.cleanwata.org");
+    return url.origin === "https://wata.cleanwata.org" ? `${url.pathname}${url.search}` : "";
   } catch { return ""; }
 }
 

@@ -27,7 +27,7 @@ test("drawer makes the shared profile and personal work the primary navigation",
   assert.match(html, /id="appearancePanel" hidden/);
   assert.match(html, /id="drawerLanguagePanel"[\s\S]*hidden/);
   assert.match(html, /id="signOutButton"/);
-  assert.match(html, /<span>W\.A\.T\.A\. Wonderful World<\/span><strong>v1\.5\.0<\/strong>/);
+  assert.match(html, /<span>W\.A\.T\.A\. Wonderful World<\/span><strong>v1\.5\.1<\/strong>/);
   assert.match(app, /dataAdapter\.signOut\(\)/);
   assert.match(app, /syncCurrentDestination/);
   assert.match(app, /drawerReturnFocus = menuButton/);
@@ -36,9 +36,9 @@ test("drawer makes the shared profile and personal work the primary navigation",
 
 test("service worker precaches the revised navigation assets", async () => {
   const worker = await source("sw.js");
-  assert.match(worker, /wata-wonderful-world-v33-shared-profile-travel/);
+  assert.match(worker, /wata-wonderful-world-v34-responsive-entry/);
   assert.match(worker, /styles\.css\?v=47/);
-  assert.match(worker, /app\.js\?v=42/);
+  assert.match(worker, /app\.js\?v=43/);
   assert.match(worker, /lib\/wata-profile\.js\?v=1\.1\.0/);
 });
 
@@ -83,12 +83,17 @@ test("Wonderful World hosts the immutable shared profile component behind the pl
   assert.doesNotMatch(app, /community\.cleanwata\.org\/#profile/);
 });
 
-test("Wonderful World opens on the member profile and keeps apps inside Toolkit", async () => {
+test("Wonderful World opens responsively and keeps apps inside Toolkit", async () => {
   const app = await source("app.js");
-  assert.match(app, /location\.hash\.slice\(1\) \|\| "profile"/);
-  assert.match(app, /if \(currentView === "home"\) currentView = "profile"/);
+  const manifest = JSON.parse(await source("manifest.webmanifest"));
+  assert.match(app, /preferredStartView/);
+  assert.match(app, /max-width: 700px/);
+  assert.match(app, /\? "toolkit" : "profile"/);
+  assert.equal(manifest.start_url, "/#toolkit");
+  assert.deepEqual(manifest.shortcuts.map(item => item.url), ["/#toolkit", "/#profile"]);
   assert.match(app, /function profileView\(\)/);
   assert.match(app, /function toolkitView\(\)/);
+  assert.match(app, /profileReturnView = currentView/);
   assert.match(app, /Profile[\s\S]*My filters[\s\S]*Trips[\s\S]*Distributions[\s\S]*Training[\s\S]*Toolkit/);
   assert.doesNotMatch(app, /quickLinks\.innerHTML = bootstrap\.apps/);
 });
