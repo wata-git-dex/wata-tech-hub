@@ -1,6 +1,6 @@
 import { dataAdapter } from "./data-adapter.js";
 import { languageLocale, normalizeLanguage, translateText } from "./i18n.js";
-import { isWataProfileComplete, mountWataProfile, WATA_PROFILE_COMPONENT_VERSION } from "./lib/wata-profile-rich.js?v=1.2.0";
+import { isWataProfileComplete, mountWataProfile, WATA_PROFILE_COMPONENT_VERSION } from "./lib/wata-profile-rich.js?v=1.2.1";
 
 const SNAPSHOT_KEY = "wata-tech-hub-bootstrap-v2";
 const PROFILE_PROMPT_KEY = "wata.toolkit.profile-prompt-deferred.v1";

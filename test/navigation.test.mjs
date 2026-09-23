@@ -27,7 +27,7 @@ test("drawer makes the shared profile and personal work the primary navigation",
   assert.match(html, /id="appearancePanel" hidden/);
   assert.match(html, /id="drawerLanguagePanel"[\s\S]*hidden/);
   assert.match(html, /id="signOutButton"/);
-  assert.match(html, /<span>W\.A\.T\.A\. Wonderful World<\/span><strong>v1\.6\.0<\/strong>/);
+  assert.match(html, /<span>W\.A\.T\.A\. Wonderful World<\/span><strong>v1\.6\.1<\/strong>/);
   assert.match(app, /dataAdapter\.signOut\(\)/);
   assert.match(app, /syncCurrentDestination/);
   assert.match(app, /drawerReturnFocus = menuButton/);
@@ -36,10 +36,10 @@ test("drawer makes the shared profile and personal work the primary navigation",
 
 test("service worker precaches the revised navigation assets", async () => {
   const worker = await source("sw.js");
-  assert.match(worker, /wata-wonderful-world-v36-profile-editor/);
+  assert.match(worker, /wata-wonderful-world-v37-profile-preferences/);
   assert.match(worker, /styles\.css\?v=49/);
-  assert.match(worker, /app\.js\?v=45/);
-  assert.match(worker, /lib\/wata-profile-rich\.js\?v=1\.2\.0/);
+  assert.match(worker, /app\.js\?v=46/);
+  assert.match(worker, /lib\/wata-profile-rich\.js\?v=1\.2\.1/);
 });
 
 test("Wonderful World owns the branded shared-identity sign-in surface", async () => {
@@ -79,7 +79,7 @@ test("Wonderful World hosts the immutable shared profile component behind the pl
   assert.match(app, /integration\?\.profile\?\.writable/);
   assert.match(app, /completeOnboarding: state\.profileMode === "onboarding"/);
   assert.match(app, /localStorage\.removeItem\(SNAPSHOT_KEY\)/);
-  assert.match(build, /vendor\/shared-profile\/1\.2\.0/);
+  assert.match(build, /vendor\/shared-profile\/1\.2\.1/);
   assert.doesNotMatch(app, /community\.cleanwata\.org\/#profile/);
 });
 

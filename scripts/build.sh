@@ -15,6 +15,6 @@ cp "$project_dir/assets/tech-hub/apple-touch-icon-v6.png" "$dist_dir/apple-touch
 cp "$project_dir/assets/tech-hub/icon-32-v6.png" "$dist_dir/favicon-32.png"
 cp -R "$project_dir/guides" "$dist_dir/guides"
 cp "$project_dir/gateway.js" "$dist_dir/_worker.js"
-cp "$project_dir/vendor/shared-profile/1.2.0/"* "$dist_dir/lib/"
+cp "$project_dir/vendor/shared-profile/1.2.1/"* "$dist_dir/lib/"
 
 cp "$project_dir/design-polish.css" "$project_dir/dist/design-polish.css"

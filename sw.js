@@ -1,6 +1,6 @@
-const VERSION = "wata-wonderful-world-v36-profile-editor";
-const APP_SHELL = ["./design-polish.css?v=2",
-  "/", "/index.html", "/styles.css?v=49", "/app.js?v=45", "/auth.js", "/config.js", "/i18n.js", "/data-adapter.js", "/theme-init.js", "/lib/wata-profile.js", "/lib/wata-profile-rich.js?v=1.2.0", "/lib/wata-profile.css",
+const VERSION = "wata-wonderful-world-v37-profile-preferences";
+const APP_SHELL = ["./design-polish.css?v=3",
+  "/", "/index.html", "/styles.css?v=49", "/app.js?v=46", "/auth.js", "/config.js", "/i18n.js", "/data-adapter.js", "/theme-init.js", "/lib/wata-profile.js", "/lib/wata-profile-rich.js?v=1.2.1", "/lib/wata-profile.css?v=1.2.1", "/lib/profile-photo.js",
   "/assets/tech-hub/brand-logo-v3.png",
   "/manifest.webmanifest?v=3", "/favicon-32.png?v=6", "/apple-touch-icon.png?v=6",
   "/assets/tech-hub/icon-192-v6.png", "/assets/tech-hub/icon-512-v6.png",

@@ -53,4 +53,7 @@ html { -webkit-text-size-adjust: 100%; }
 [data-theme="light"] .topbar::before { opacity:.1; }
 [data-theme="light"] .topbar-title strong { color:#15324f; }
 [data-theme="light"] .sidebar { background-image:linear-gradient(180deg,#edf6ffdd,#f5f9fcee),url("assets/topography-map.jpg");background-size:auto,auto 900px; }
-.member-profile-editor { max-width:1100px;--wata-profile-muted:var(--muted); }
+.content:has(.member-profile-editor) { max-width:none;width:100%; }
+.member-profile-editor { max-width:none;width:100%;--wata-profile-muted:var(--muted);--wata-profile-accent:#39d5f4; }
+[data-theme="light"] .member-profile-editor { --wata-profile-accent:#087fa8; }
+.sidebar nav>[aria-current="page"] { background:linear-gradient(100deg,color-mix(in srgb,var(--accent-1) 24%,var(--panel)),color-mix(in srgb,var(--accent-2) 12%,var(--panel)));box-shadow:inset 3px 0 var(--accent-1);outline:1px solid color-mix(in srgb,var(--accent-1) 45%,transparent);color:var(--text); }
